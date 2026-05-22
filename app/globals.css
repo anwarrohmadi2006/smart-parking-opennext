@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* 
+ * Catatan: Next.js + Tailwind v4 menggunakan skema gaya CSS langsung untuk konfigurasi tema
+ * (alih-alih menggunakan tailwind.config.js seperti pada versi sebelumnya). 
+ * Di bawah ini adalah deklarasi palet warna kustom untuk kebutuhan kita.
+ */
+@theme {
+  /* Palet Warna Admin (Gelap / Deep Blue & Slate) */
+  --color-admin-primary: var(--color-slate-900);
+  --color-admin-secondary: var(--color-slate-800);
+  --color-admin-accent: var(--color-indigo-500);
+  --color-admin-text: var(--color-slate-100);
+
+  /* Palet Warna User (Terang / Clean) */
+  --color-user-bg: var(--color-slate-50);
+  --color-user-surface: var(--color-white);
+  --color-user-accent: var(--color-sky-500);
+  --color-user-text: var(--color-slate-800);
+}
