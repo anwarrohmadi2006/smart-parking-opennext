@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "smartparkingprojectcc26"
+name = "smart-parking-opennext"
 main = ".open-next/worker.js"
 compatibility_date = "2026-05-21"
 compatibility_flags = [
