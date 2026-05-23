@@ -21,9 +21,10 @@ export interface Config {
 }
 
 export interface Slot {
-  id: string; // Contoh: 'A01', 'A02'
+  id: string; // Contoh: '184'
   status: "kosong" | "terisi"; // Status slot saat ini
-  location: string; // Contoh: 'Blok A'
+  location: string; // Contoh: 'Zona Kamera 01'
+  camera?: string; // ID Kamera pemantau (misal: '01')
 }
 
 export interface ActiveVehicle {
@@ -64,6 +65,19 @@ interface ParkingContextType {
   isSlowInternet: boolean;
   lastSyncTime: number | null;
   syncToDB: (action: string, payload: any) => Promise<void>;
+  
+  // Replay Simulator Extensions
+  replayIndex: number;
+  setReplayIndex: (index: number) => void;
+  isPlaying: boolean;
+  setIsPlaying: (playing: boolean) => void;
+  speed: string;
+  setSpeed: (speed: string) => void;
+  replayData: any[];
+  currentTimestamp: string;
+  currentWeather: string;
+  injectedScenario: { type: "weather" | "occupancy"; value: any } | null;
+  setInjectedScenario: React.Dispatch<React.SetStateAction<{ type: "weather" | "occupancy"; value: any } | null>>;
 }
 
 // ==========================================
@@ -120,34 +134,181 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
   const [isSlowInternet, setIsSlowInternet] = useState<boolean>(false);
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
 
+  // Replay Simulator States
+  const [replayIndex, setReplayIndex] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<string>("off"); // default off (Live Mode)
+  const [replayData, setReplayData] = useState<any[]>([]);
+  const [slotCameraMap, setSlotCameraMap] = useState<Record<string, string>>({});
+  const [injectedScenario, setInjectedScenario] = useState<{ type: "weather" | "occupancy"; value: any } | null>(null);
+
+  // Load replay data & slot mappings
+  useEffect(() => {
+    fetch("/data/replay_data.json")
+      .then((res) => res.json())
+      .then((data) => setReplayData(data))
+      .catch((err) => console.error("Error loading replay data:", err));
+
+    fetch("/data/slot_camera_mapping.json")
+      .then((res) => res.json())
+      .then((data) => setSlotCameraMap(data))
+      .catch((err) => console.error("Error loading slot camera mapping:", err));
+  }, []);
+
+  // Current timestamp and weather from active replay index
+  const currentTimestamp = replayData[replayIndex]?.timestamp || "2015-11-16 07:10";
+  const currentWeather = injectedScenario?.type === "weather" 
+    ? injectedScenario.value 
+    : (replayData[replayIndex]?.weather || "SUNNY");
+
+  // Helper to convert speed to interval ms
+  const getIntervalMs = (s: string) => {
+    switch (s) {
+      case "1x": return 600000;
+      case "60x": return 10000;
+      case "150x": return 4000;
+      case "300x": return 2000;
+      case "600x": return 1000;
+      case "1200x": return 500;
+      default: return 4000;
+    }
+  };
+
+  // 1. Update slots state when replayIndex, replayData, slotCameraMap, or injectedScenario changes
+  useEffect(() => {
+    if (replayData.length === 0 || Object.keys(slotCameraMap).length === 0) return;
+    
+    const currentData = replayData[replayIndex];
+    if (!currentData) return;
+
+    const datasetSlots = currentData.slots || {};
+    const injectedOccupiedList = (injectedScenario?.type === "occupancy") 
+      ? (injectedScenario.value as string[]) 
+      : [];
+
+    const newSlots = Object.keys(slotCameraMap).map((sid) => {
+      const camId = slotCameraMap[sid];
+      
+      let isOccupied = datasetSlots[sid] === 1;
+      if (injectedOccupiedList.includes(sid)) {
+        isOccupied = true;
+      }
+
+      return {
+        id: sid,
+        status: isOccupied ? ("terisi" as const) : ("kosong" as const),
+        camera: camId,
+        location: `Zona Kamera ${camId}`,
+      };
+    });
+
+    newSlots.sort((a, b) => a.id.localeCompare(b.id));
+    setSlots(newSlots);
+  }, [replayIndex, replayData, slotCameraMap, injectedScenario]);
+
+  // 2. Timer loop for simulation increments
+  useEffect(() => {
+    if (!isPlaying || speed === "off" || replayData.length === 0) return;
+
+    const intervalMs = getIntervalMs(speed);
+    
+    const timer = setInterval(() => {
+      setReplayIndex((prev) => (prev + 1) % replayData.length);
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [isPlaying, speed, replayData.length]);
+
+  // 3. Sync occupancy history to Firestore every 6 virtual hours (index % 6 === 0)
+  useEffect(() => {
+    if (!isPlaying || speed === "off" || replayData.length === 0) return;
+
+    if (replayIndex % 6 === 0) {
+      const syncHistory = async () => {
+        const dataPoint = replayData[replayIndex];
+        if (!dataPoint) return;
+
+        const totalSlotsCount = 164;
+        const datasetSlots = dataPoint.slots || {};
+        const originalOccupied = Object.values(datasetSlots).filter((v) => v === 1).length;
+
+        let finalOccupied = originalOccupied;
+        if (injectedScenario?.type === "occupancy") {
+          const injectedList = injectedScenario.value as string[];
+          const extraOccupied = injectedList.filter((sid) => datasetSlots[sid] !== 1).length;
+          finalOccupied += extraOccupied;
+        }
+
+        const rate = Math.min(1.0, finalOccupied / totalSlotsCount);
+        const timestampStr = dataPoint.timestamp;
+        
+        try {
+          const dateObj = new Date(timestampStr.replace(/-/g, "/"));
+          const timeMs = dateObj.getTime();
+          
+          await setDoc(doc(db, "occupancy_history", timeMs.toString()), {
+            timestamp: timeMs,
+            occupancy_rate: rate,
+            hour: dateObj.getHours(),
+            day_of_week: dateObj.getDay(),
+            is_weekend: dateObj.getDay() === 0 || dateObj.getDay() === 6 ? 1 : 0,
+            weather: currentWeather
+          });
+          console.log(`[Simulator Sync] Synced virtual time ${timestampStr} with rate ${rate.toFixed(4)}`);
+        } catch (err) {
+          console.error("Error syncing occupancy history to Firestore:", err);
+        }
+      };
+      
+      syncHistory();
+    }
+  }, [replayIndex, isPlaying, speed, replayData, injectedScenario, currentWeather]);
+
   // Setup initial Firestore data structure if empty
   useEffect(() => {
+    if (Object.keys(slotCameraMap).length === 0) return;
     const initDb = async () => {
-      const slotsSnap = await getDocs(collection(db, "slots"));
-      if (slotsSnap.empty) {
-        console.log("Initializing Firestore with default data...");
-        const batch = writeBatch(db);
+      try {
+        const slotsSnap = await getDocs(collection(db, "slots"));
+        const hasOldSlots = slotsSnap.docs.some(doc => doc.id.startsWith("F"));
         
-        // slots
-        defaultSlots.forEach((s) => {
-          const ref = doc(collection(db, "slots"), s.id);
-          batch.set(ref, s);
-        });
+        if (slotsSnap.empty || hasOldSlots) {
+          console.log("Initializing/Migrating Firestore with CNRParkEXT slots...");
+          const batch = writeBatch(db);
+          
+          if (hasOldSlots) {
+            slotsSnap.docs.forEach((doc) => {
+              batch.delete(doc.ref);
+            });
+          }
+          
+          Object.keys(slotCameraMap).forEach((sid) => {
+            const camId = slotCameraMap[sid];
+            const ref = doc(db, "slots", sid);
+            batch.set(ref, {
+              id: sid,
+              status: "kosong",
+              camera: camId,
+              location: `Zona Kamera ${camId}`
+            });
+          });
 
-        // initial config
-        const confRef = doc(collection(db, "config"), "default");
-        batch.set(confRef, { harga_per_jam: 5000, demo_mode: false });
+          const confRef = doc(db, "config", "default");
+          batch.set(confRef, { harga_per_jam: 5000, demo_mode: false });
 
-        await batch.commit();
-        console.log("Firestore initialized.");
+          await batch.commit();
+          console.log("Firestore initialized.");
+        }
+      } catch (err) {
+        console.error("Error in initDb:", err);
       }
     };
     initDb();
-  }, []);
+  }, [slotCameraMap]);
 
   // Realtime listeners via Firestore
   useEffect(() => {
-    if (isSlowInternet) return; // Simulasi: stop listening saat isSlowInternet
+    if (isSlowInternet || isPlaying || speed !== "off") return; // Stop listening when playing/paused simulator to save reads
 
     // Listen to Config
     const unsubConfig = onSnapshot(doc(db, "config", "default"), (docSnap) => {
@@ -163,7 +324,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
       const newSlots: Slot[] = [];
       snap.forEach((docSnap) => {
         const d = docSnap.data();
-        newSlots.push({ id: d.id, status: d.status, location: d.location });
+        newSlots.push({ id: d.id, status: d.status, location: d.location, camera: d.camera });
       });
       // sort slots to keep fixed order
       newSlots.sort((a, b) => a.id.localeCompare(b.id));
@@ -229,6 +390,20 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
         await batch.commit();
 
+        // Snapshot history for AI predictions
+        const occupiedIn = activeVehicles.length + 1;
+        const rateIn = occupiedIn / 24.0;
+        const timeIn = Date.now();
+        const dateIn = new Date(timeIn);
+        await setDoc(doc(db, "occupancy_history", timeIn.toString()), {
+          timestamp: timeIn,
+          occupancy_rate: rateIn,
+          hour: dateIn.getHours(),
+          day_of_week: dateIn.getDay(),
+          is_weekend: dateIn.getDay() === 0 || dateIn.getDay() === 6 ? 1 : 0,
+          weather: "SUNNY"
+        });
+
       } else if (action === "vehicle_out") {
         const batch = writeBatch(db);
         
@@ -246,6 +421,20 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
         });
 
         await batch.commit();
+
+        // Snapshot history for AI predictions
+        const occupiedOut = Math.max(0, activeVehicles.length - 1);
+        const rateOut = occupiedOut / 24.0;
+        const timeOut = Date.now();
+        const dateOut = new Date(timeOut);
+        await setDoc(doc(db, "occupancy_history", timeOut.toString()), {
+          timestamp: timeOut,
+          occupancy_rate: rateOut,
+          hour: dateOut.getHours(),
+          day_of_week: dateOut.getDay(),
+          is_weekend: dateOut.getDay() === 0 || dateOut.getDay() === 6 ? 1 : 0,
+          weather: "SUNNY"
+        });
       }
     } catch (e) {
       console.error("DB Sync failed:", e);
@@ -404,6 +593,19 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
         isSlowInternet,
         lastSyncTime,
         syncToDB,
+        
+        // Replay Simulator Extensions
+        replayIndex,
+        setReplayIndex,
+        isPlaying,
+        setIsPlaying,
+        speed,
+        setSpeed,
+        replayData,
+        currentTimestamp,
+        currentWeather,
+        injectedScenario,
+        setInjectedScenario
       }}
     >
       {children}

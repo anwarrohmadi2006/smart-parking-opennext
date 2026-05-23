@@ -81,7 +81,7 @@ export default function EntryGatePage() {
              <p className="text-xl font-bold font-mono">
                <span className={availableSlots > 0 ? 'text-emerald-400' : 'text-rose-400'}>{availableSlots}</span>
                <span className="text-slate-500 mx-1">/</span>
-               <span className="text-slate-300">24</span>
+               <span className="text-slate-300">{slots.length}</span>
              </p>
           </div>
         </div>

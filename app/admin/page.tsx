@@ -20,8 +20,63 @@ export default function DashboardPage() {
     setIsManualClose,
     isSlowInternet,
     lastSyncTime,
-    syncToDB
+    syncToDB,
+    
+    // Replay Simulator Extensions
+    replayIndex,
+    setReplayIndex,
+    isPlaying,
+    setIsPlaying,
+    speed,
+    setSpeed,
+    replayData,
+    currentTimestamp,
+    currentWeather,
+    injectedScenario,
+    setInjectedScenario
   } = useParking();
+
+  // Camera filtering state
+  const [activeCamera, setActiveCamera] = useState('semua');
+
+  // Helper for formatting simulation virtual timestamps
+  const formatVirtualDate = (timestampStr: string) => {
+    try {
+      const date = new Date(timestampStr.replace(/-/g, "/"));
+      const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const months = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      
+      const dayName = days[date.getDay()];
+      const dayNum = date.getDate();
+      const monthName = months[date.getMonth()];
+      const year = date.getFullYear();
+      const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      
+      return `${dayName}, ${dayNum} ${monthName} ${year} - ${timeStr}`;
+    } catch (e) {
+      return timestampStr;
+    }
+  };
+
+  // Helper to inject occupancy surge
+  const injectEmergencyOccupancy = () => {
+    const emptySlots = slots.filter((s) => s.status === 'kosong');
+    if (emptySlots.length < 30) {
+      alert("Slot kosong tidak cukup untuk disuntikkan 30 kendaraan darurat!");
+      return;
+    }
+    
+    const shuffled = [...emptySlots].sort(() => 0.5 - Math.random());
+    const selectedIds = shuffled.slice(0, 30).map((s) => s.id);
+    
+    setInjectedScenario({
+      type: "occupancy",
+      value: selectedIds
+    });
+  };
 
   // Local state untuk Admin Checkout Modal
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
@@ -50,7 +105,38 @@ export default function DashboardPage() {
   const occupiedSlots = slots.length - availableSlots;
   const occupancyPercentage = slots.length > 0 ? Math.round((occupiedSlots / slots.length) * 100) : 0;
 
+  // Filtered slots for grid view based on active camera tab
+  const filteredSlots = activeCamera === 'semua' ? slots : slots.filter(s => s.camera === activeCamera);
+
+  
+  // Local state untuk AI Prediction
+  const [aiPrediction, setAiPrediction] = useState<{
+    predicted_pct: string;
+    confidence: { confidence_pct: number; confidence_level: string };
+    recommendation: { urgency: string; actions: string[]; status_flag: string; human_summary: string };
+    ai_narrative: string;
+  } | null>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
+
+  const fetchAiPrediction = async () => {
+    setLoadingAi(true);
+    try {
+      const res = await fetch("/api/predict");
+      if (res.ok) {
+        const data = await res.json();
+        setAiPrediction(data);
+      }
+    } catch (err) {
+      console.error("Gagal memuat prediksi AI:", err);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
   useEffect(() => {
+    fetchAiPrediction();
+    
+    // Fallback/Legacy mock calculations for old UI prediction consistency if needed
     let estimasiMasuk = 0;
     let estimasiKeluar = 0;
     let statusPeringatan = 'Aman';
@@ -66,8 +152,6 @@ export default function DashboardPage() {
       estimasiKeluar = Math.floor(Math.random() * 4) + 2; 
       statusPeringatan = '🔴 Peringatan: Kapasitas Kritis!';
     }
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPrediction({ masuk: estimasiMasuk, keluar: estimasiKeluar, status: statusPeringatan });
   }, [occupancyPercentage]);
 
@@ -358,26 +442,335 @@ export default function DashboardPage() {
           
           {activeTab === 'dashboard' && (
             <>
-              {/* PREDIKSI & OKUPANSI */}
-              <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800">
-                <h2 className="text-xl font-bold mb-3">Status Okupansi: {occupancyPercentage}%</h2>
-                <div className="w-full bg-slate-700 h-4 rounded-full mb-6 relative overflow-hidden">
-                  <div 
-                    className={`h-4 rounded-full transition-all duration-500 ${occupancyPercentage > 85 ? 'bg-rose-500' : 'bg-blue-500'}`} 
-                    style={{ width: `${occupancyPercentage}%` }}
-                  ></div>
+              {/* PANEL SIMULASI CONTROL ROOM (Premium Glassmorphism Design) */}
+              <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-6 shadow-2xl text-slate-100 mb-6 relative overflow-hidden">
+                {/* Background ambient light */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 relative z-10">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className="relative flex h-3 w-3">
+                        {speed === "off" ? (
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_10px_#10b981]"></span>
+                        ) : isPlaying ? (
+                          <>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                          </>
+                        ) : (
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span>
+                        )}
+                      </span>
+                      <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        9-Day Replay Control Room
+                        {speed === "off" ? (
+                          <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-widest">
+                            Live Mode
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-amber-950 text-amber-400 border border-amber-800/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-widest">
+                            Simulation Mode ({speed})
+                          </span>
+                        )}
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {speed === "off" 
+                        ? "Menampilkan data okupansi real-time yang aktif dari database Firestore."
+                        : `Menjalankan simulasi data parkir 9 hari berturut-turut berdasarkan dataset CNRParkEXT (164 slot).`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {speed !== "off" && (
+                      <button
+                        onClick={() => {
+                          setIsPlaying(false);
+                          setSpeed("off");
+                          setInjectedScenario(null);
+                        }}
+                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700/80 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                      >
+                        Kembali ke Live Mode
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">PREDIKSI 1 JAM KE DEPAN</h3>
-                  <p className="text-lg">
-                    Estimasi <span className="font-bold text-emerald-400">{prediction.masuk} masuk</span> dan <span className="font-bold text-blue-400">{prediction.keluar} keluar</span>.
-                  </p>
-                  {prediction.status !== 'Aman' && (
-                    <div className="mt-3 inline-block bg-rose-500/20 border border-rose-500/30 text-rose-400 px-3 py-1.5 rounded-lg text-sm font-semibold animate-pulse">
-                      {prediction.status} Siapkan tindakan antisipasi!
+                {/* Media Controls & Speed Selection */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center bg-slate-950/40 border border-slate-800/50 p-4 rounded-xl mb-6 relative z-10">
+                  {/* Part 1: Media Player Buttons */}
+                  <div className="flex items-center justify-center lg:justify-start gap-3">
+                    <button
+                      onClick={() => {
+                        if (speed === "off") setSpeed("150x");
+                        setReplayIndex((prev) => (prev > 0 ? prev - 1 : 927));
+                      }}
+                      className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 transition-all hover:scale-105 active:scale-95"
+                      title="Step Backward (Prev 10 Min)"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.8V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"/></svg>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (speed === "off") {
+                          setSpeed("150x");
+                        }
+                        setIsPlaying(!isPlaying);
+                      }}
+                      className={`p-3 rounded-lg border transition-all hover:scale-105 active:scale-95 ${
+                        isPlaying 
+                          ? 'bg-amber-500 hover:bg-amber-400 text-amber-950 border-amber-600' 
+                          : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-700'
+                      }`}
+                      title={isPlaying ? "Pause Simulation" : "Play Simulation"}
+                    >
+                      {isPlaying ? (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/></svg>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (speed === "off") setSpeed("150x");
+                        setReplayIndex((prev) => (prev + 1) % 928);
+                      }}
+                      className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 transition-all hover:scale-105 active:scale-95"
+                      title="Step Forward (Next 10 Min)"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798L4.555 5.168z"/></svg>
+                    </button>
+                  </div>
+
+                  {/* Part 2: Speed Warp Slider */}
+                  <div className="flex flex-col gap-1.5 w-full">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <span>Kecepatan Replay</span>
+                      <span className="text-amber-400 font-mono">{speed === "off" ? "Off (Live)" : speed}</span>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="range"
+                        min={0}
+                        max={6}
+                        value={
+                          speed === "off" ? 0 : 
+                          speed === "1x" ? 1 : 
+                          speed === "60x" ? 2 : 
+                          speed === "150x" ? 3 : 
+                          speed === "300x" ? 4 : 
+                          speed === "600x" ? 5 : 6
+                        }
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          const speeds = ["off", "1x", "60x", "150x", "300x", "600x", "1200x"];
+                          const newSpeed = speeds[val];
+                          setSpeed(newSpeed);
+                          if (newSpeed === "off") {
+                            setIsPlaying(false);
+                            setInjectedScenario(null);
+                          } else {
+                            setIsPlaying(true);
+                          }
+                        }}
+                        className="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none"
+                      />
+                    </div>
+                    <div className="flex justify-between text-[8px] text-slate-500 font-mono">
+                      <span>OFF</span>
+                      <span>1x</span>
+                      <span>60x</span>
+                      <span>150x</span>
+                      <span>300x</span>
+                      <span>600x</span>
+                      <span>1200x</span>
+                    </div>
+                  </div>
+
+                  {/* Part 3: Status Details */}
+                  <div className="flex flex-col items-center lg:items-end justify-center gap-1">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+                      <span>Cuaca virtual:</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        currentWeather === 'RAINY' 
+                          ? 'bg-blue-950 text-blue-400 border border-blue-800/40' 
+                          : 'bg-amber-950 text-amber-400 border border-amber-800/40'
+                      }`}>
+                        {currentWeather === 'RAINY' ? '🌧️ HUJAN LEBAT' : '☀️ CERAH'}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono text-center lg:text-right mt-1">
+                      Hari virtual ke-{(Math.floor(replayIndex / 108) + 1)} / 9
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline Seek Bar */}
+                <div className="space-y-2 mb-6 relative z-10">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-blue-400 font-mono">
+                      {formatVirtualDate(currentTimestamp)}
+                    </span>
+                    <span className="text-slate-400 font-mono">
+                      Frame {replayIndex + 1} / 928
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={927}
+                    value={replayIndex}
+                    onChange={(e) => {
+                      if (speed === "off") setSpeed("150x"); // enter simulation mode
+                      setReplayIndex(parseInt(e.target.value));
+                    }}
+                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                    <span>16 Nov (Awal)</span>
+                    <span>Weekend 1</span>
+                    <span>20 Nov (Tengah)</span>
+                    <span>Weekend 2</span>
+                    <span>25 Nov (Akhir)</span>
+                  </div>
+                </div>
+
+                {/* "What-If" Scenario Injectors */}
+                <div className="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl relative z-10">
+                  <div className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-blue-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    "What-If" Scenario Injector (Simulator)
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => {
+                        if (speed === "off") setSpeed("150x");
+                        setInjectedScenario({ type: "weather", value: "RAINY" });
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                        injectedScenario?.type === "weather" && injectedScenario.value === "RAINY"
+                          ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
+                          : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                      }`}
+                    >
+                      🌧️ Suntik Hujan Lebat
+                    </button>
+
+                    <button
+                      onClick={injectEmergencyOccupancy}
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                        injectedScenario?.type === "occupancy"
+                          ? "bg-red-600 border-red-500 text-white shadow-lg shadow-red-500/20"
+                          : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                      }`}
+                    >
+                      🚨 Suntik Kendaraan Darurat (+30 Slot)
+                    </button>
+
+                    {injectedScenario && (
+                      <button
+                        onClick={() => setInjectedScenario(null)}
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold rounded-lg border border-slate-700 transition-colors"
+                      >
+                        Reset Skenario
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* PREDIKSI & OKUPANSI */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Card 1: Okupansi Saat Ini */}
+                <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col justify-between min-h-[220px]">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-bold tracking-tight">Status Okupansi Saat Ini</h2>
+                      <span className="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700 font-mono">Real-time</span>
+                    </div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-5xl font-black font-mono text-blue-400">{occupancyPercentage}%</span>
+                      <span className="text-slate-500 text-sm">keterisian lahan</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mb-6 font-medium">Terisi: {occupiedSlots} slot | Tersedia: {availableSlots} slot</p>
+                  </div>
+                  <div className="w-full bg-slate-800 h-4 rounded-full mb-2 relative overflow-hidden shadow-inner">
+                    <div 
+                      className={`h-4 rounded-full transition-all duration-500 ${occupancyPercentage > 85 ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`} 
+                      style={{ width: `${occupancyPercentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Card 2: AI Asisten Cerdas (Model CLSTAN) */}
+                <div className="bg-slate-950 text-white p-6 rounded-2xl shadow-xl border border-blue-500/20 relative overflow-hidden min-h-[220px] flex flex-col justify-between">
+                  {/* Background glowing aura */}
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-600/10 rounded-full blur-2xl"></div>
+                  
+                  <div>
+                    <div className="flex justify-between items-center mb-4 relative z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-600/20 border border-blue-500/30 rounded-lg flex items-center justify-center animate-pulse">
+                          <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        </div>
+                        <h2 className="text-md font-bold tracking-wider text-slate-100 uppercase">SmartPark AI Assistant</h2>
+                      </div>
+                      {loadingAi ? (
+                        <span className="text-[10px] bg-slate-800 text-blue-400 px-2 py-0.5 rounded font-mono animate-pulse">Analyzing...</span>
+                      ) : (
+                        <span className="text-[10px] bg-blue-900/50 text-blue-400 border border-blue-800/50 px-2 py-0.5 rounded font-mono">Model CLSTAN</span>
+                      )}
+                    </div>
+
+                    {aiPrediction ? (
+                      <div className="space-y-4 relative z-10">
+                        <div className="flex justify-between items-center bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Prediksi Okupansi (30 Menit)</p>
+                            <p className="text-3xl font-black font-mono text-emerald-400 tracking-tight">{aiPrediction.predicted_pct}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Model Confidence</p>
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                              aiPrediction.confidence.confidence_level === "TINGGI" 
+                                ? 'bg-emerald-950 text-emerald-400 border-emerald-800/30' 
+                                : 'bg-amber-950 text-amber-400 border-amber-800/30'
+                            }`}>
+                              {aiPrediction.confidence.confidence_level} ({aiPrediction.confidence.confidence_pct}%)
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* AI Narrative Bubble (Gemini) */}
+                        <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/60 text-xs text-slate-300 leading-relaxed italic relative">
+                          <span className="absolute -top-2.5 left-4 bg-slate-950 px-2 text-[9px] font-bold text-blue-400 uppercase tracking-wider">Gemini AI Insight</span>
+                          "{aiPrediction.ai_narrative}"
+                        </div>
+
+                        {/* Recommended Actions */}
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Rekomendasi Tindakan Admin</p>
+                          <ul className="space-y-1.5 text-xs text-slate-200">
+                            {aiPrediction.recommendation.actions.map((act, index) => (
+                              <li key={index} className="flex items-start gap-2 bg-slate-900/30 p-2 rounded-lg border border-slate-900/50 hover:bg-slate-900/50 transition-colors">
+                                <input type="checkbox" className="mt-0.5 accent-blue-500 rounded cursor-pointer" />
+                                <span className="font-medium">{act}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center text-xs text-slate-500 italic">
+                        Memuat prediksi AI...
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -400,19 +793,38 @@ export default function DashboardPage() {
 
               {/* GRID AREA */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="font-bold text-slate-800">Parking Map</h3>
-                    <p className="text-xs text-slate-400 italic">State: slots[{slots.length}]</p>
+                <div className="flex flex-col gap-4 mb-6 border-b border-slate-100 pb-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-slate-800">Parking Map (Control Room View)</h3>
+                      <p className="text-xs text-slate-400 italic">Saring tampilan slot berdasarkan camera feed atau tampilkan semua</p>
+                    </div>
+                    <div className="flex gap-4 text-[10px] font-bold">
+                      <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-slate-50 border border-slate-200 rounded"></span> EMPTY</div>
+                      <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-blue-500 border border-blue-600 rounded"></span> OCCUPIED</div>
+                    </div>
                   </div>
-                  <div className="flex gap-4 text-[10px] font-bold">
-                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-slate-50 border border-slate-200 rounded"></span> EMPTY</div>
-                    <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-blue-500 border border-blue-600 rounded"></span> OCCUPIED</div>
+                  
+                  {/* Camera Tabs */}
+                  <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/60">
+                    {['semua', '01', '02', '03', '04', '05', '06', '07', '08', '09'].map((cam) => (
+                      <button
+                        key={cam}
+                        onClick={() => setActiveCamera(cam)}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                          activeCamera === cam
+                            ? 'bg-slate-900 text-white shadow-sm shadow-slate-900/10'
+                            : 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/50'
+                        }`}
+                      >
+                        {cam === 'semua' ? `Semua (${slots.length} Slot)` : `Cam ${cam}`}
+                      </button>
+                    ))}
                   </div>
                 </div>
               
                 <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
-                  {slots.map((slot) => {
+                  {filteredSlots.map((slot) => {
                     const isEmpty = slot.status === 'kosong';
                     return (
                       <div 

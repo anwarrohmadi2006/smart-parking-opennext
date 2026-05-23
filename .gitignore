@@ -7,3 +7,6 @@ coverage/
 !.env.example
 
 # /generated/prisma
+
+# wandb cache
+wandb/

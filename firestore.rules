@@ -2,9 +2,41 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default open for the dev preview environment as this is just a demo
-    match /{document=**} {
-      allow read, write: if true;
+    // Validasi skema slot parkir
+    match /slots/{slotId} {
+      allow read: if true;
+      allow write: if request.resource.data.status in ['kosong', 'terisi']
+                   && request.resource.data.id == slotId;
+    }
+    
+    // Validasi skema konfigurasi global
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if request.resource.data.harga_per_jam is int
+                   && request.resource.data.harga_per_jam > 0;
+    }
+    
+    // Validasi skema log masuk/keluar
+    match /logs/{logId} {
+      allow read: if true;
+      allow write: if request.resource.data.type in ['in', 'out']
+                   && request.resource.data.timestamp is int;
+    }
+    
+    // Validasi skema kendaraan aktif
+    match /activeVehicles/{vehicleId} {
+      allow read: if true;
+      allow write: if request.resource.data.ticketId == vehicleId
+                   && request.resource.data.slotId is string;
+    }
+    
+    // Validasi skema riwayat okupansi untuk AI
+    match /occupancy_history/{historyId} {
+      allow read: if true;
+      allow write: if request.resource.data.occupancy_rate is number
+                   && request.resource.data.occupancy_rate >= 0.0
+                   && request.resource.data.occupancy_rate <= 1.0;
     }
   }
 }
+

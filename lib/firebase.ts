@@ -11,12 +11,8 @@ const firebaseConfig = {
   measurementId: ""
 };
 
-let app: any;
-let db: any;
-
-if (typeof window !== "undefined") {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-  db = getFirestore(app, "ai-studio-958a91bd-4791-4958-8185-c2c4c67693dc");
-}
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(app, "ai-studio-958a91bd-4791-4958-8185-c2c4c67693dc");
 
 export { app, db };
+
