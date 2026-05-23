@@ -111,16 +111,21 @@ export default function DashboardPage() {
   
   // Local state untuk AI Prediction
   const [aiPrediction, setAiPrediction] = useState<{
+    prediction_id: string;
     predicted_pct: string;
     confidence: { confidence_pct: number; confidence_level: string };
     recommendation: { urgency: string; actions: string[]; status_flag: string; human_summary: string };
     ai_narrative: string;
+    change_rate_per_interval: number;
     source?: string;
   } | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<string | null>(null);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const fetchAiPrediction = async () => {
     setLoadingAi(true);
+    setFeedbackSubmitted(null); // Reset feedback status on new prediction load
     const startTime = Date.now();
     try {
       console.groupCollapsed(
@@ -162,6 +167,36 @@ export default function DashboardPage() {
       console.groupEnd();
     } finally {
       setLoadingAi(false);
+    }
+  };
+
+  const handleFeedback = async (isCorrect: boolean) => {
+    if (!aiPrediction) return;
+    setSubmittingFeedback(true);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prediction_id: aiPrediction.prediction_id,
+          actual_occupancy: occupancyPercentage / 100.0,
+          correct: isCorrect,
+          admin_action_taken: `Feedback manual dari admin (Aktual: ${occupancyPercentage}%)`,
+        }),
+      });
+
+      if (res.ok) {
+        setFeedbackSubmitted(aiPrediction.prediction_id);
+        console.log(`🤖 [SmartPark AI] Feedback berhasil terkirim untuk Prediksi ID: ${aiPrediction.prediction_id}`);
+      } else {
+        console.error("Gagal mengirimkan feedback");
+      }
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -769,7 +804,20 @@ export default function DashboardPage() {
                         <div className="flex justify-between items-center bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
                           <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Prediksi Okupansi (30 Menit)</p>
-                            <p className="text-3xl font-black font-mono text-emerald-400 tracking-tight">{aiPrediction.predicted_pct}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-3xl font-black font-mono text-emerald-400 tracking-tight">{aiPrediction.predicted_pct}</p>
+                              {aiPrediction.change_rate_per_interval !== undefined && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1 ${
+                                  aiPrediction.change_rate_per_interval > 0.005 
+                                    ? 'bg-rose-950/80 text-rose-400 border-rose-800/30' 
+                                    : aiPrediction.change_rate_per_interval < -0.005 
+                                    ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/30' 
+                                    : 'bg-slate-800/80 text-slate-400 border-slate-700/30'
+                                }`} title={`Laju perubahan: ${aiPrediction.change_rate_per_interval.toFixed(4)}`}>
+                                  {aiPrediction.change_rate_per_interval > 0.005 ? "↗️ Mengisi" : aiPrediction.change_rate_per_interval < -0.005 ? "↘️ Sepi" : "➡️ Stabil"}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Model Confidence</p>
@@ -787,6 +835,34 @@ export default function DashboardPage() {
                         <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/60 text-xs text-slate-300 leading-relaxed italic relative">
                           <span className="absolute -top-2.5 left-4 bg-slate-950 px-2 text-[9px] font-bold text-blue-400 uppercase tracking-wider">Gemini AI Insight</span>
                           "{aiPrediction.ai_narrative}"
+                        </div>
+
+                        {/* AI Validation Feedback Panel */}
+                        <div className="flex items-center justify-between bg-slate-900/30 p-3 rounded-xl border border-slate-800/50 animate-fade-in">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apakah Prediksi AI Akurat?</span>
+                          
+                          {feedbackSubmitted === aiPrediction.prediction_id ? (
+                            <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 animate-pulse">
+                              Feedback Dikirim! Terima Kasih ✅
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleFeedback(true)}
+                                disabled={submittingFeedback}
+                                className="px-3 py-1 bg-emerald-950 hover:bg-emerald-900/80 text-emerald-400 border border-emerald-800/40 text-[10px] font-bold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                              >
+                                {submittingFeedback ? "..." : "👍 Akurat"}
+                              </button>
+                              <button
+                                onClick={() => handleFeedback(false)}
+                                disabled={submittingFeedback}
+                                className="px-3 py-1 bg-rose-950 hover:bg-rose-900/80 text-rose-400 border border-rose-800/40 text-[10px] font-bold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                              >
+                                {submittingFeedback ? "..." : "👎 Salah"}
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Recommended Actions */}
