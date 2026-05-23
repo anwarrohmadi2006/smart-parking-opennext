@@ -68,11 +68,11 @@ interface ParkingContextType {
   
   // Replay Simulator Extensions
   replayIndex: number;
-  setReplayIndex: (index: number) => void;
+  setReplayIndex: React.Dispatch<React.SetStateAction<number>>;
   isPlaying: boolean;
-  setIsPlaying: (playing: boolean) => void;
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   speed: string;
-  setSpeed: (speed: string) => void;
+  setSpeed: React.Dispatch<React.SetStateAction<string>>;
   replayData: any[];
   currentTimestamp: string;
   currentWeather: string;
