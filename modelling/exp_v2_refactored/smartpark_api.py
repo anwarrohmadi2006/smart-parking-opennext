@@ -56,15 +56,35 @@ N_FEATURES  = len(FEATURE_COLS)
 _models = {}
 def get_model(name='clstan'):
     import tensorflow as tf
+    from tensorflow.keras import layers
+
+    class TemporalAttention(layers.Layer):
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self.score = layers.Dense(1)
+        def call(self, x):
+            w = tf.nn.softmax(self.score(x), axis=1)
+            return tf.reduce_sum(x * w, axis=1)
+        def get_config(self):
+            return super().get_config()
+
     if name not in _models:
         p = BASE_DIR / "best_clstan.keras" if name == 'clstan' else BASE_DIR / f'best_{name}.keras'
         if p.exists():
-            _models[name] = tf.keras.models.load_model(str(p), compile=False)
+            _models[name] = tf.keras.models.load_model(
+                str(p),
+                custom_objects={'TemporalAttention': TemporalAttention},
+                compile=False
+            )
         else:
             # Fallback if specific file name is requested but only best_clstan is present
             alt_p = BASE_DIR / "best_clstan.keras"
             if alt_p.exists():
-                _models[name] = tf.keras.models.load_model(str(alt_p), compile=False)
+                _models[name] = tf.keras.models.load_model(
+                    str(alt_p),
+                    custom_objects={'TemporalAttention': TemporalAttention},
+                    compile=False
+                )
     return _models.get(name)
 
 # ── Custom Logic ────────────────────────────────────────────────

@@ -7,15 +7,15 @@ app = modal.App("smartpark-api")
 # Define the container image with CPU support and necessary python packages.
 # We mount all required scaler and model artifacts into the container's /root directory.
 api_image = (
-    modal.Image.debian_slim(python_version="3.11")
+    modal.Image.from_registry("tensorflow/tensorflow:2.15.0")
     .pip_install(
         "fastapi",
         "uvicorn",
-        "numpy<2.0",
+        "numpy<2.0.0",
+        "protobuf<4.24",
         "pandas",
         "scikit-learn",
-        "google-generativeai",
-        "tensorflow"
+        "google-generativeai"
     )
     .add_local_file(
         local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_v2_refactored/best_clstan.keras",
