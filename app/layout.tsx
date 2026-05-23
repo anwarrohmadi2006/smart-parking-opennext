@@ -1,12 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css'; // Global styles
-import dynamic from 'next/dynamic';
+import ClientParkingProvider from '@/components/ClientParkingProvider';
 import DemoBanner from '@/components/DemoBanner';
-
-const ParkingProvider = dynamic(
-  () => import('@/context/ParkingContext').then((mod) => mod.ParkingProvider),
-  { ssr: false }
-);
 
 export const metadata: Metadata = {
   title: 'Sistem Manajemen Parkir',
@@ -17,10 +12,10 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <ParkingProvider>
+        <ClientParkingProvider>
           <DemoBanner />
           {children}
-        </ParkingProvider>
+        </ClientParkingProvider>
       </body>
     </html>
   );
