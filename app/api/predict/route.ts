@@ -101,6 +101,7 @@ export async function GET(request: NextRequest) {
       }
 
       const data = await response.json();
+      data.source = "Modal.com Cloud ML";
       
       // Update cache
       cachedResponse = data;
@@ -142,6 +143,7 @@ export async function GET(request: NextRequest) {
           human_summary: summary,
         },
         ai_narrative: `[Lokal Fallback] Tingkat hunian parkir saat ini terpantau ${pct}%. ${summary} Silakan lakukan penyesuaian operasional lapangan jika diperlukan.`,
+        source: "Local Rule-based Fallback (Modal Offline)"
       };
 
       // Update cache

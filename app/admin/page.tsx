@@ -115,19 +115,51 @@ export default function DashboardPage() {
     confidence: { confidence_pct: number; confidence_level: string };
     recommendation: { urgency: string; actions: string[]; status_flag: string; human_summary: string };
     ai_narrative: string;
+    source?: string;
   } | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
   const fetchAiPrediction = async () => {
     setLoadingAi(true);
+    const startTime = Date.now();
     try {
+      console.groupCollapsed(
+        `%c🤖 [SmartPark AI] Memanggil API Cloud ML Inference (Modal.com)...`,
+        "color: #3b82f6; font-weight: bold; padding: 2px 4px; background: #e0f2fe; border-radius: 4px;"
+      );
+      console.log("Endpoint Proxy:", window.location.origin + "/api/predict");
+      console.log("Target Cloud ML Host:", "https://anwarrohmadi111--smartpark-api-web-app.modal.run/predict");
+      
       const res = await fetch("/api/predict");
       if (res.ok) {
         const data = await res.json();
+        const latency = Date.now() - startTime;
+        
+        console.log("Status HTTP:", res.status);
+        console.log("Waktu Respon (Latency):", `${latency}ms`);
+        console.log("Payload/Hasil AI:", data);
+        
+        if (data.source === "Modal.com Cloud ML") {
+          console.log(
+            `%c✅ BERHASIL: Prediksi dihitung secara real-time oleh model Deep Learning (LSTM + Temporal Attention) di cloud Modal.com!`,
+            "color: #10b981; font-weight: bold; background: #ecfdf5; padding: 2px 4px; border-radius: 4px;"
+          );
+        } else {
+          console.warn(
+            `%c⚠️ WARNING: Menggunakan Local Rule-based Fallback karena API Cloud offline atau lambat.`,
+            "color: #d97706; font-weight: bold; background: #fef3c7; padding: 2px 4px; border-radius: 4px;"
+          );
+        }
+        
+        console.groupEnd();
         setAiPrediction(data);
+      } else {
+        console.error("HTTP Error:", res.status, res.statusText);
+        console.groupEnd();
       }
     } catch (err) {
-      console.error("Gagal memuat prediksi AI:", err);
+      console.error("🤖 [SmartPark AI] Gagal memuat prediksi AI:", err);
+      console.groupEnd();
     } finally {
       setLoadingAi(false);
     }
@@ -722,6 +754,11 @@ export default function DashboardPage() {
                       </div>
                       {loadingAi ? (
                         <span className="text-[10px] bg-slate-800 text-blue-400 px-2 py-0.5 rounded font-mono animate-pulse">Analyzing...</span>
+                      ) : aiPrediction?.source ? (
+                        <span className="text-[10px] bg-blue-950/80 text-blue-400 border border-blue-800/50 px-2.5 py-0.5 rounded font-mono flex items-center gap-1.5" title={`Sumber: ${aiPrediction.source}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${aiPrediction.source.includes("Cloud") ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse"}`}></span>
+                          {aiPrediction.source.includes("Cloud") ? "Modal.com Cloud" : "Local Fallback"}
+                        </span>
                       ) : (
                         <span className="text-[10px] bg-blue-900/50 text-blue-400 border border-blue-800/50 px-2 py-0.5 rounded font-mono">Model CLSTAN</span>
                       )}
