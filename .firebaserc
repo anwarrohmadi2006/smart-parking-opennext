@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "ultra-optics-428313-h6": {
+      "database": {
+        "my-db": [
+          "ai-studio-a41a5c93-aa4f-4502-9bc0-7f8e9ba610fc"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
