@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "@/lib/firebase-rtdb";
 
 const firebaseConfig = {
   projectId: "ultra-optics-428313-h6",
@@ -8,11 +9,19 @@ const firebaseConfig = {
   apiKey: "AIzaSyDm71ECAe6BBeEA-vGirguOMA6nkit2GeM",
   authDomain: "ultra-optics-428313-h6.firebaseapp.com",
   messagingSenderId: "75598703644",
-  measurementId: ""
+  measurementId: "",
+  // URL Realtime Database — ganti setelah aktifkan di Firebase Console
+  // Format: https://<project-id>-default-rtdb.<region>.firebasedatabase.app
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
+    "https://ultra-optics-428313-h6-default-rtdb.asia-southeast1.firebasedatabase.app",
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
+// Firestore — hanya untuk occupancy_history (AI prediction)
 const db = getFirestore(app, "ai-studio-a41a5c93-aa4f-4502-9bc0-7f8e9ba610fc");
 
-export { app, db };
+// Firebase Realtime Database — untuk slots, config, activeVehicles, logs
+const rtdb = getDatabase(app);
 
+export { app, db, rtdb };

@@ -8,7 +8,25 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { collection, doc, onSnapshot, setDoc, updateDoc, writeBatch, deleteDoc, query, limit, orderBy, getDocs } from "firebase/firestore";
+
+// Firebase Realtime Database — untuk slots, config, activeVehicles, logs
+import {
+  ref,
+  onValue,
+  set,
+  update,
+  remove,
+  off,
+  get,
+  query,
+  orderByKey,
+  limitToLast,
+  type DataSnapshot,
+} from "@/lib/firebase-rtdb";
+import { rtdb } from "@/lib/firebase";
+
+// Firestore — HANYA untuk occupancy_history (dipakai AI prediction di /api/predict)
+import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // ==========================================
@@ -65,7 +83,7 @@ interface ParkingContextType {
   isSlowInternet: boolean;
   lastSyncTime: number | null;
   syncToDB: (action: string, payload: any) => Promise<void>;
-  
+
   // Replay Simulator Extensions
   replayIndex: number;
   setReplayIndex: React.Dispatch<React.SetStateAction<number>>;
@@ -157,8 +175,8 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
   // Current timestamp and weather from active replay index
   const currentTimestamp = replayData[replayIndex]?.timestamp || "2015-11-16 07:10";
-  const currentWeather = injectedScenario?.type === "weather" 
-    ? injectedScenario.value 
+  const currentWeather = injectedScenario?.type === "weather"
+    ? injectedScenario.value
     : (replayData[replayIndex]?.weather || "SUNNY");
 
   // Helper to convert speed to interval ms
@@ -177,18 +195,18 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
   // 1. Update slots state when replayIndex, replayData, slotCameraMap, or injectedScenario changes
   useEffect(() => {
     if (replayData.length === 0 || Object.keys(slotCameraMap).length === 0) return;
-    
+
     const currentData = replayData[replayIndex];
     if (!currentData) return;
 
     const datasetSlots = currentData.slots || {};
-    const injectedOccupiedList = (injectedScenario?.type === "occupancy") 
-      ? (injectedScenario.value as string[]) 
+    const injectedOccupiedList = (injectedScenario?.type === "occupancy")
+      ? (injectedScenario.value as string[])
       : [];
 
     const newSlots = Object.keys(slotCameraMap).map((sid) => {
       const camId = slotCameraMap[sid];
-      
+
       let isOccupied = datasetSlots[sid] === 1;
       if (injectedOccupiedList.includes(sid)) {
         isOccupied = true;
@@ -211,7 +229,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
     if (!isPlaying || speed === "off" || replayData.length === 0) return;
 
     const intervalMs = getIntervalMs(speed);
-    
+
     const timer = setInterval(() => {
       setReplayIndex((prev) => (prev + 1) % replayData.length);
     }, intervalMs);
@@ -220,6 +238,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
   }, [isPlaying, speed, replayData.length]);
 
   // 3. Sync occupancy history to Firestore every 6 virtual hours (index % 6 === 0)
+  // NOTE: occupancy_history tetap di Firestore karena dipakai oleh AI prediction API
   useEffect(() => {
     if (!isPlaying || speed === "off" || replayData.length === 0) return;
 
@@ -241,11 +260,12 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
         const rate = Math.min(1.0, finalOccupied / totalSlotsCount);
         const timestampStr = dataPoint.timestamp;
-        
+
         try {
           const dateObj = new Date(timestampStr.replace(/-/g, "/"));
           const timeMs = dateObj.getTime();
-          
+
+          // Tetap pakai Firestore untuk occupancy_history (dipakai AI prediction)
           await setDoc(doc(db, "occupancy_history", timeMs.toString()), {
             timestamp: timeMs,
             occupancy_rate: rate,
@@ -259,45 +279,42 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
           console.error("Error syncing occupancy history to Firestore:", err);
         }
       };
-      
+
       syncHistory();
     }
   }, [replayIndex, isPlaying, speed, replayData, injectedScenario, currentWeather]);
 
-  // Setup initial Firestore data structure if empty
+  // Setup initial Realtime Database data structure if empty
   useEffect(() => {
     if (Object.keys(slotCameraMap).length === 0) return;
     const initDb = async () => {
       try {
-        const slotsSnap = await getDocs(collection(db, "slots"));
-        const hasOldSlots = slotsSnap.docs.some(doc => doc.id.startsWith("F"));
-        
-        if (slotsSnap.empty || hasOldSlots) {
-          console.log("Initializing/Migrating Firestore with CNRParkEXT slots...");
-          const batch = writeBatch(db);
-          
-          if (hasOldSlots) {
-            slotsSnap.docs.forEach((doc) => {
-              batch.delete(doc.ref);
-            });
-          }
-          
+        // Cek apakah slots sudah ada di Realtime DB
+        const slotsSnap = await get(ref(rtdb, "slots"));
+
+        const hasOldSlots = slotsSnap.exists() &&
+          Object.keys(slotsSnap.val() || {}).some(k => k.startsWith("F"));
+
+        if (!slotsSnap.exists() || hasOldSlots) {
+          console.log("Initializing/Migrating Realtime DB with CNRParkEXT slots...");
+
+          // Bangun objek slots sekaligus (lebih efisien dari Firestore batch)
+          const slotsObj: Record<string, object> = {};
           Object.keys(slotCameraMap).forEach((sid) => {
             const camId = slotCameraMap[sid];
-            const ref = doc(db, "slots", sid);
-            batch.set(ref, {
+            slotsObj[sid] = {
               id: sid,
               status: "kosong",
               camera: camId,
               location: `Zona Kamera ${camId}`
-            });
+            };
           });
 
-          const confRef = doc(db, "config", "default");
-          batch.set(confRef, { harga_per_jam: 5000, demo_mode: false });
+          // Set semua slot sekaligus (1 write ke RTDB, jauh lebih efisien)
+          await set(ref(rtdb, "slots"), slotsObj);
+          await set(ref(rtdb, "config"), { harga_per_jam: 5000, demo_mode: false });
 
-          await batch.commit();
-          console.log("Firestore initialized.");
+          console.log("Realtime DB initialized.");
         }
       } catch (err) {
         console.error("Error in initDb:", err);
@@ -306,91 +323,96 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
     initDb();
   }, [slotCameraMap]);
 
-  // Realtime listeners via Firestore
+  // Realtime listeners via Firebase Realtime Database
   useEffect(() => {
     if (isSlowInternet || isPlaying || speed !== "off") return; // Stop listening when playing/paused simulator to save reads
 
-    // Listen to Config
-    const unsubConfig = onSnapshot(doc(db, "config", "default"), (docSnap) => {
+    // --- Listen to Config ---
+    const configRef = ref(rtdb, "config");
+    const configHandler = onValue(configRef, (snap: DataSnapshot) => {
       setLastSyncTime(Date.now());
-      if (docSnap.exists()) {
-        setConfig(docSnap.data() as Config);
+      if (snap.exists()) {
+        setConfig(snap.val() as Config);
       }
     });
 
-    // Listen to Slots
-    const unsubSlots = onSnapshot(collection(db, "slots"), (snap) => {
+    // --- Listen to Slots ---
+    const slotsRef = ref(rtdb, "slots");
+    const slotsHandler = onValue(slotsRef, (snap: DataSnapshot) => {
       setLastSyncTime(Date.now());
-      const newSlots: Slot[] = [];
-      snap.forEach((docSnap) => {
-        const d = docSnap.data();
-        newSlots.push({ id: d.id, status: d.status, location: d.location, camera: d.camera });
-      });
-      // sort slots to keep fixed order
-      newSlots.sort((a, b) => a.id.localeCompare(b.id));
-      if (newSlots.length > 0) setSlots(newSlots);
+      if (snap.exists()) {
+        const data = snap.val() as Record<string, Slot>;
+        const newSlots: Slot[] = Object.values(data);
+        newSlots.sort((a, b) => a.id.localeCompare(b.id));
+        if (newSlots.length > 0) setSlots(newSlots);
+      }
     });
 
-    // Listen to Vehicles
-    const unsubVehicles = onSnapshot(collection(db, "activeVehicles"), (snap) => {
+    // --- Listen to Active Vehicles ---
+    const vehiclesRef = ref(rtdb, "activeVehicles");
+    const vehiclesHandler = onValue(vehiclesRef, (snap: DataSnapshot) => {
       setLastSyncTime(Date.now());
-      const newVehicles: ActiveVehicle[] = [];
-      snap.forEach((docSnap) => {
-        newVehicles.push(docSnap.data() as ActiveVehicle);
-      });
-      setActiveVehicles(newVehicles);
+      if (snap.exists()) {
+        const data = snap.val() as Record<string, ActiveVehicle>;
+        setActiveVehicles(Object.values(data));
+      } else {
+        setActiveVehicles([]);
+      }
     });
 
-    // Listen to Logs
-    const qLogs = query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(50));
-    const unsubLogs = onSnapshot(qLogs, (snap) => {
+    // --- Listen to Logs (last 50, sorted by key) ---
+    const logsQueryRef = query(ref(rtdb, "logs"), orderByKey(), limitToLast(50));
+    const logsHandler = onValue(logsQueryRef, (snap: DataSnapshot) => {
       setLastSyncTime(Date.now());
-      const newLogs: LogEntry[] = [];
-      snap.forEach((docSnap) => {
-        newLogs.push(docSnap.data() as LogEntry);
-      });
-      setLogs(newLogs);
+      if (snap.exists()) {
+        const data = snap.val() as Record<string, LogEntry>;
+        const newLogs: LogEntry[] = Object.values(data);
+        // Sort descending by timestamp
+        newLogs.sort((a, b) => b.timestamp - a.timestamp);
+        setLogs(newLogs);
+      } else {
+        setLogs([]);
+      }
     });
 
+    // Cleanup: lepas semua listener saat effect berakhir
     return () => {
-      unsubConfig();
-      unsubSlots();
-      unsubVehicles();
-      unsubLogs();
+      off(configRef, "value", configHandler);
+      off(slotsRef, "value", slotsHandler);
+      off(vehiclesRef, "value", vehiclesHandler);
+      off(logsQueryRef, "value", logsHandler);
     };
-  }, [isSlowInternet]);
+  }, [isSlowInternet, isPlaying, speed]);
 
-  // Sync to database
+  // Sync to Realtime Database
   const syncToDB = async (action: string, payload: any) => {
     try {
       if (action === "update_config") {
-        await updateDoc(doc(db, "config", "default"), {
+        // Update config di Realtime DB
+        await update(ref(rtdb, "config"), {
           harga_per_jam: payload.harga_per_jam,
           demo_mode: payload.demo_mode,
         });
+
       } else if (action === "vehicle_in") {
-        const batch = writeBatch(db);
-        
-        // Slot
-        batch.update(doc(db, "slots", payload.slotId), { status: "terisi" });
-        
-        // activeVehicle
-        batch.set(doc(db, "activeVehicles", payload.ticketId), {
+        // Update slot status
+        await update(ref(rtdb, `slots/${payload.slotId}`), { status: "terisi" });
+
+        // Tambah activeVehicle
+        await set(ref(rtdb, `activeVehicles/${payload.ticketId}`), {
           ticketId: payload.ticketId,
           slotId: payload.slotId,
           checkInTime: payload.checkInTime,
         });
 
-        // Log
-        batch.set(doc(db, "logs", payload.logId), {
+        // Tambah log
+        await set(ref(rtdb, `logs/${payload.logId}`), {
           id: payload.logId,
           type: "in",
           timestamp: payload.checkInTime,
         });
 
-        await batch.commit();
-
-        // Snapshot history for AI predictions
+        // Snapshot history untuk AI prediction — TETAP di Firestore
         const occupiedIn = activeVehicles.length + 1;
         const rateIn = occupiedIn / 24.0;
         const timeIn = Date.now();
@@ -405,24 +427,20 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
         });
 
       } else if (action === "vehicle_out") {
-        const batch = writeBatch(db);
-        
-        // Slot
-        batch.update(doc(db, "slots", payload.slotId), { status: "kosong" });
-        
-        // Remove activeVehicle
-        batch.delete(doc(db, "activeVehicles", payload.ticketId));
+        // Update slot status
+        await update(ref(rtdb, `slots/${payload.slotId}`), { status: "kosong" });
 
-        // Add Log
-        batch.set(doc(db, "logs", payload.logId), {
+        // Hapus activeVehicle
+        await remove(ref(rtdb, `activeVehicles/${payload.ticketId}`));
+
+        // Tambah log keluar
+        await set(ref(rtdb, `logs/${payload.logId}`), {
           id: payload.logId,
           type: "out",
           timestamp: payload.timestamp,
         });
 
-        await batch.commit();
-
-        // Snapshot history for AI predictions
+        // Snapshot history untuk AI prediction — TETAP di Firestore
         const occupiedOut = Math.max(0, activeVehicles.length - 1);
         const rateOut = occupiedOut / 24.0;
         const timeOut = Date.now();
@@ -593,7 +611,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
         isSlowInternet,
         lastSyncTime,
         syncToDB,
-        
+
         // Replay Simulator Extensions
         replayIndex,
         setReplayIndex,
