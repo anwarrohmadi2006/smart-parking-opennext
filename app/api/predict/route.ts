@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
     // Check in-memory cache to prevent excessive API calls and database reads
     const payloadHash = JSON.stringify(payload.observations);
     const timeLimit = 2000; // 2 seconds minimum throttle
-    if (cachedResponse && (cachedPayloadHash === payloadHash || now - lastFetchTime < timeLimit)) {
+    if (cachedResponse && cachedPayloadHash === payloadHash && now - lastFetchTime < timeLimit) {
       return NextResponse.json(cachedResponse);
     }
 
