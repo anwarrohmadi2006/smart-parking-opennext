@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore/lite";
+import { db } from "@/lib/firebase-lite";
 
 // URL FastAPI server (lokal default atau dideploy di Modal.com)
 const FASTAPI_URL = process.env.FASTAPI_URL || "https://anwarrohmadi111--smartpark-api-web-app.modal.run/predict";
