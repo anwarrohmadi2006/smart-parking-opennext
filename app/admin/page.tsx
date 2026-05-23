@@ -137,7 +137,22 @@ export default function DashboardPage() {
       console.log("Endpoint Proxy:", window.location.origin + "/api/predict");
       console.log("Target Cloud ML Host:", "https://anwarrohmadi111--smartpark-api-web-app.modal.run/predict");
       
-      const res = await fetch("/api/predict");
+      const currentRate = occupancyPercentage / 100.0;
+      let virtualHour = new Date().getHours();
+      if (speed !== "off") {
+        try {
+          const date = new Date(currentTimestamp.replace(/-/g, "/"));
+          virtualHour = date.getHours();
+        } catch (e) {}
+      }
+
+      const queryParams = new URLSearchParams({
+        current_occ: currentRate.toFixed(4),
+        weather: currentWeather || "SUNNY",
+        hour: virtualHour.toString(),
+      });
+
+      const res = await fetch(`/api/predict?${queryParams.toString()}`);
       if (res.ok) {
         const data = await res.json();
         const latency = Date.now() - startTime;

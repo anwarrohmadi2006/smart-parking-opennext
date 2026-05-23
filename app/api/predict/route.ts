@@ -13,6 +13,14 @@ let cachedPayloadHash: string = "";
 export async function GET(request: NextRequest) {
   try {
     const now = Date.now();
+    const { searchParams } = new URL(request.url);
+    const currentOccParam = searchParams.get("current_occ");
+    const weatherParam = searchParams.get("weather");
+    const hourParam = searchParams.get("hour");
+
+    const queryCurrentOcc = currentOccParam !== null ? parseFloat(currentOccParam) : null;
+    const queryWeather = weatherParam ? weatherParam.toUpperCase() : null;
+    const queryHour = hourParam !== null ? parseInt(hourParam) : null;
 
     // 1. Ambil data historis dari Firestore collection "occupancy_history"
     const historyRef = collection(db, "occupancy_history");
@@ -31,13 +39,17 @@ export async function GET(request: NextRequest) {
     if (observations.length < 18) {
       console.log(`[Proxy Predict] Data historis hanya ada ${observations.length}, melakukan backfill...`);
       
-      // Ambil occupancy saat ini dari activeVehicles untuk baseline
+      // Ambil occupancy saat ini dari activeVehicles atau parameter query untuk baseline
       let currentOccupancyRate = 0.0;
-      try {
-        const activeVehiclesSnap = await getDocs(collection(db, "activeVehicles"));
-        currentOccupancyRate = Math.min(1.0, activeVehiclesSnap.size / 24.0);
-      } catch (err) {
-        console.error("Gagal mengambil activeVehicles:", err);
+      if (queryCurrentOcc !== null) {
+        currentOccupancyRate = queryCurrentOcc;
+      } else {
+        try {
+          const activeVehiclesSnap = await getDocs(collection(db, "activeVehicles"));
+          currentOccupancyRate = Math.min(1.0, activeVehiclesSnap.size / 24.0);
+        } catch (err) {
+          console.error("Gagal mengambil activeVehicles:", err);
+        }
       }
 
       // Lengkapi sisa observations ke 18 baris (mundur ke belakang per 10 menit)
@@ -59,11 +71,46 @@ export async function GET(request: NextRequest) {
           hour: date.getHours(),
           day_of_week: date.getDay(),
           is_weekend: date.getDay() === 0 || date.getDay() === 6 ? 1 : 0,
-          weather: "SUNNY",
+          weather: queryWeather || "SUNNY",
         });
       }
       
       observations = [...backfilled, ...observations];
+    }
+
+    // Selalu sesuaikan data observasi agar data point terbaru tepat sama dengan data real-time saat ini
+    if (queryCurrentOcc !== null && observations.length > 0) {
+      const latestObsRate = observations[observations.length - 1].occupancy_rate;
+      const diff = queryCurrentOcc - latestObsRate;
+
+      observations = observations.map((obs, idx) => {
+        let newRate = obs.occupancy_rate + diff;
+        newRate = Math.max(0.0, Math.min(1.0, newRate));
+
+        if (idx === observations.length - 1) {
+          newRate = queryCurrentOcc;
+        }
+
+        let newWeather = obs.weather;
+        if (queryWeather) {
+          newWeather = queryWeather;
+        }
+
+        let newHour = obs.hour;
+        if (queryHour !== null) {
+          // Sesuaikan mundur per 10 menit dari jam virtual saat ini
+          const offsetMins = (observations.length - 1 - idx) * 10;
+          const adjustedHour = (queryHour - Math.floor(offsetMins / 60) + 24) % 24;
+          newHour = adjustedHour;
+        }
+
+        return {
+          ...obs,
+          occupancy_rate: newRate,
+          weather: newWeather,
+          hour: newHour,
+        };
+      });
     }
 
     // 3. Format observations sesuai skema input model
