@@ -2,11 +2,9 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingRoot: __dirname,
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  experimental: {
-    outputFileTracingRoot: __dirname,
   },
   typescript: {
     ignoreBuildErrors: false,
