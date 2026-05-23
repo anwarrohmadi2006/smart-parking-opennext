@@ -102,6 +102,17 @@ export async function GET(request: NextRequest) {
 
       const data = await response.json();
       data.source = "Modal.com Cloud ML";
+
+      const current_occ = data.current_occupancy;
+      const pred_30 = data.predicted_occupancy_30min;
+
+      const pred_10 = current_occ + (pred_30 - current_occ) * (1 / 3);
+      const pred_20 = current_occ + (pred_30 - current_occ) * (2 / 3);
+
+      data.predicted_occupancy_10min = Number(pred_10.toFixed(4));
+      data.predicted_occupancy_20min = Number(pred_20.toFixed(4));
+      data.predicted_pct_10min = `${(pred_10 * 100).toFixed(1)}%`;
+      data.predicted_pct_20min = `${(pred_20 * 100).toFixed(1)}%`;
       
       // Update cache
       cachedResponse = data;
@@ -135,6 +146,10 @@ export async function GET(request: NextRequest) {
         current_occupancy: currentRate,
         predicted_occupancy_30min: currentRate,
         predicted_pct: `${pct}%`,
+        predicted_occupancy_10min: currentRate,
+        predicted_occupancy_20min: currentRate,
+        predicted_pct_10min: `${pct}%`,
+        predicted_pct_20min: `${pct}%`,
         confidence: { confidence_pct: 80, confidence_level: "SEDANG" },
         recommendation: {
           urgency,

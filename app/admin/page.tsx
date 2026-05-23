@@ -113,6 +113,8 @@ export default function DashboardPage() {
   const [aiPrediction, setAiPrediction] = useState<{
     prediction_id: string;
     predicted_pct: string;
+    predicted_pct_10min?: string;
+    predicted_pct_20min?: string;
     confidence: { confidence_pct: number; confidence_level: string };
     recommendation: { urgency: string; actions: string[]; status_flag: string; human_summary: string };
     ai_narrative: string;
@@ -829,6 +831,46 @@ export default function DashboardPage() {
                               {aiPrediction.confidence.confidence_level} ({aiPrediction.confidence.confidence_pct}%)
                             </span>
                           </div>
+                        </div>
+
+                        {/* Timeline Prediksi 10m | 20m | 30m */}
+                        <div className="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/60 text-xs">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Estimasi Alur Okupansi (Timeline)</p>
+                          <div className="relative flex items-center justify-between mt-2 px-2">
+                            {/* Horizontal Line under the points */}
+                            <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-[2px] bg-slate-800 z-0"></div>
+                            
+                            {/* Node 1: Current */}
+                            <div className="flex flex-col items-center relative z-10">
+                              <span className="w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-slate-950 flex items-center justify-center"></span>
+                              <span className="text-[9px] text-slate-400 font-medium mt-1">Saat Ini</span>
+                              <span className="text-[11px] font-bold text-slate-200 font-mono mt-0.5">{occupancyPercentage}%</span>
+                            </div>
+
+                            {/* Node 2: 10 Min */}
+                            <div className="flex flex-col items-center relative z-10">
+                              <span className="w-3.5 h-3.5 rounded-full bg-blue-400 border-2 border-slate-950 flex items-center justify-center"></span>
+                              <span className="text-[9px] text-slate-400 font-medium mt-1">+10 Mins</span>
+                              <span className="text-[11px] font-bold text-blue-300 font-mono mt-0.5">{aiPrediction.predicted_pct_10min || `${occupancyPercentage}%`}</span>
+                            </div>
+
+                            {/* Node 3: 20 Min */}
+                            <div className="flex flex-col items-center relative z-10">
+                              <span className="w-3.5 h-3.5 rounded-full bg-indigo-400 border-2 border-slate-950 flex items-center justify-center"></span>
+                              <span className="text-[9px] text-slate-400 font-medium mt-1">+20 Mins</span>
+                              <span className="text-[11px] font-bold text-indigo-300 font-mono mt-0.5">{aiPrediction.predicted_pct_20min || `${occupancyPercentage}%`}</span>
+                            </div>
+
+                            {/* Node 4: 30 Min (CLSTAN) */}
+                            <div className="flex flex-col items-center relative z-10">
+                              <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950 flex items-center justify-center shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+                              <span className="text-[9px] text-emerald-400 font-semibold mt-1" title="Dihitung oleh model CLSTAN">+30 Mins*</span>
+                              <span className="text-[11px] font-bold text-emerald-400 font-mono mt-0.5">{aiPrediction.predicted_pct}</span>
+                            </div>
+                          </div>
+                          <p className="text-[8px] text-slate-500 italic mt-3 text-right">
+                            *Prediksi 30m dihitung oleh model CLSTAN, sedangkan 10m &amp; 20m diinterpolasikan linier.
+                          </p>
                         </div>
 
                         {/* AI Narrative Bubble (Gemini) */}
