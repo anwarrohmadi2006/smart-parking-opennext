@@ -1,9 +1,10 @@
 {
   "rules": {
     ".read": true,
+    
     "slots": {
+      ".write": true,
       "$slotId": {
-        ".write": "newData.hasChildren(['status', 'id'])",
         "status": {
           ".validate": "newData.val() == 'kosong' || newData.val() == 'terisi'"
         },
@@ -12,8 +13,9 @@
         }
       }
     },
+    
     "config": {
-      ".write": "newData.hasChildren(['harga_per_jam'])",
+      ".write": true,
       "harga_per_jam": {
         ".validate": "newData.isNumber() && newData.val() > 0"
       },
@@ -21,9 +23,10 @@
         ".validate": "newData.isBoolean()"
       }
     },
+    
     "activeVehicles": {
+      ".write": true,
       "$ticketId": {
-        ".write": "newData.exists() ? newData.hasChildren(['ticketId', 'slotId', 'checkInTime']) : true",
         "ticketId": {
           ".validate": "newData.val() == $ticketId"
         },
@@ -35,9 +38,10 @@
         }
       }
     },
+    
     "logs": {
+      ".write": true,
       "$logId": {
-        ".write": "newData.hasChildren(['id', 'type', 'timestamp'])",
         "id": {
           ".validate": "newData.val() == $logId"
         },
