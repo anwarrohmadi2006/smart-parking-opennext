@@ -421,20 +421,6 @@ export default function DashboardPage() {
           <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
             Global Config
           </p>
-          <button
-            onClick={() => {
-              const newConfig = { ...config, demo_mode: !config.demo_mode };
-              setConfig(newConfig);
-              syncToDB("update_config", newConfig);
-            }}
-            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors shadow-sm ${
-              config.demo_mode 
-                ? 'bg-amber-500 text-amber-950 hover:bg-amber-400' 
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-            }`}
-          >
-            {config.demo_mode ? 'DEMO IS ON' : 'DEMO IS OFF'}
-          </button>
         </div>
 
         {/* Sidebar Nav (Newly Requested) */}

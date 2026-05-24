@@ -8,10 +8,8 @@ export default function LandingPage() {
   const router = useRouter();
   const { config, setConfig, syncToDB } = useParking();
 
-  const handleConfigUpdate = async (demo_mode: boolean) => {
-    const newConfig = { ...config, demo_mode };
-    setConfig(newConfig);
-    await syncToDB('update_config', newConfig);
+  const handleConfigUpdate = async () => {
+    // Demo mode removed
   };
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -47,22 +45,6 @@ export default function LandingPage() {
         <p className="text-sm md:text-base text-slate-500 mb-8">
           Sistem Manajemen Parkir Cerdas
         </p>
-
-        {/* Mode Selector */}
-        <div className="flex bg-slate-100 rounded-xl p-1 mb-8 w-full border border-slate-200 shadow-inner">
-          <button 
-            onClick={() => handleConfigUpdate(false)}
-            className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${!config.demo_mode ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Real Mode
-          </button>
-          <button 
-            onClick={() => handleConfigUpdate(true)}
-            className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${config.demo_mode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Demo Mode
-          </button>
-        </div>
         
         {/* User Dashboard Buttons */}
         <div className="grid grid-cols-2 gap-4 w-full mb-10">

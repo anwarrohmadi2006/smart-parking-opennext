@@ -34,8 +34,7 @@ import { db } from "@/lib/firebase";
 // ==========================================
 
 export interface Config {
-  harga_per_jam: number; // Harga parkir per jam (Integer)
-  demo_mode: boolean; // Menandakan apakah sistem dalam mode demo (Boolean)
+  harga_per_jam: number;
 }
 
 export interface Slot {
@@ -130,7 +129,6 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
   // State untuk Config
   const [config, setConfig] = useState<Config>({
     harga_per_jam: 5000,
-    demo_mode: false,
   });
 
   // State untuk Data Slot Parkir
@@ -365,7 +363,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
           // Set semua slot sekaligus (1 write ke RTDB, jauh lebih efisien)
           await set(ref(rtdb, "slots"), slotsObj);
-          await set(ref(rtdb, "config"), { harga_per_jam: 5000, demo_mode: false });
+          await set(ref(rtdb, "config"), { harga_per_jam: 5000 });
 
           console.log("Realtime DB initialized.");
         }
@@ -444,7 +442,6 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
         // Update config di Realtime DB
         await update(ref(rtdb, "config"), {
           harga_per_jam: payload.harga_per_jam,
-          demo_mode: payload.demo_mode,
         });
 
       } else if (action === "vehicle_in") {
@@ -527,130 +524,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(latensiInterval);
   }, []);
 
-  // Ref untuk menghindari stale closure di dalam setInterval Demo Mode
-  const stateRef = useRef({ slots, activeVehicles, exitProcessData, config });
-  useEffect(() => {
-    stateRef.current = { slots, activeVehicles, exitProcessData, config };
-  }, [slots, activeVehicles, exitProcessData, config]);
 
-  // Efek Simulasi Otomatis (Demo Mode)
-  useEffect(() => {
-    if (!config.demo_mode || speed !== "off") return;
-
-    // Hanya jalankan simulasi otomatis di halaman utama atau admin (bukan display pasif)
-    if (typeof window !== "undefined") {
-      const path = window.location.pathname;
-      if (path === "/dashboard" || path === "/exit-display") {
-        return;
-      }
-    }
-
-    const demoInterval = setInterval(() => {
-      const {
-        slots: currentSlots,
-        activeVehicles: currentVehicles,
-        exitProcessData: currentExitData,
-        config: currentConfig,
-      } = stateRef.current;
-
-      // Jangan simulasikan kalau ada kendaraan yg sedang checkout
-      if (currentExitData) return;
-
-      const isEntering = Math.random() > 0.4;
-      const availableSlots = currentSlots.filter((s) => s.status === "kosong");
-
-      if (isEntering && availableSlots.length > 0) {
-        // [SIMULASI] Kendaraan Masuk
-        const randomSlot =
-          availableSlots[Math.floor(Math.random() * availableSlots.length)];
-        const newTicketId = `DEMO-${Math.floor(Math.random() * 1000)
-          .toString()
-          .padStart(3, "0")}`;
-        const newTime = Date.now();
-        const checkInTime =
-          newTime - Math.floor(Math.random() * 3 * 3600 * 1000);
-        setActiveVehicles((prev) => [
-          ...prev,
-          {
-            ticketId: newTicketId,
-            slotId: randomSlot.id,
-            // Buat agar durasi masuk sudah beberapa jam lalu supaya ada tagihan
-            checkInTime,
-          },
-        ]);
-        setSlots((prev) =>
-          prev.map((s) =>
-            s.id === randomSlot.id ? { ...s, status: "terisi" } : s,
-          ),
-        );
-        setLogs((prev) => [
-          ...prev,
-          { id: newTime.toString(), type: "in", timestamp: newTime },
-        ]);
-
-        syncToDB("vehicle_in", {
-          ticketId: newTicketId,
-          slotId: randomSlot.id,
-          checkInTime,
-          logId: newTime.toString(),
-        });
-      } else if (!isEntering && currentVehicles.length > 0) {
-        // [SIMULASI] Kendaraan Keluar
-        const vehicle =
-          currentVehicles[Math.floor(Math.random() * currentVehicles.length)];
-        const checkoutTime = Date.now();
-
-        const durationMs = checkoutTime - vehicle.checkInTime;
-        const durationMinutes = Math.floor(durationMs / (1000 * 60));
-        const hours = Math.floor(durationMinutes / 60);
-        const mins = durationMinutes % 60;
-        const durationString = `${hours} Jam ${mins} Menit`;
-        const billableHours = Math.max(1, Math.ceil(durationMinutes / 60));
-        const totalCost = billableHours * currentConfig.harga_per_jam;
-
-        // Picu layar checkout
-        setPaymentSuccess(false);
-        setExitProcessData({
-          ticketId: vehicle.ticketId,
-          durationString,
-          totalCost,
-        });
-
-        // Delay sedikit sebelum bayar
-        setTimeout(() => {
-          setPaymentSuccess(true); // layar hijau
-
-          // Delay hapus data (kendaraan resmi keluar)
-          setTimeout(() => {
-            const exitTime = Date.now();
-            setSlots((prev) =>
-              prev.map((s) =>
-                s.id === vehicle.slotId ? { ...s, status: "kosong" } : s,
-              ),
-            );
-            setActiveVehicles((prev) =>
-              prev.filter((v) => v.ticketId !== vehicle.ticketId),
-            );
-            setExitProcessData(null);
-            setPaymentSuccess(false);
-            setLogs((prev) => [
-              ...prev,
-              { id: exitTime.toString(), type: "out", timestamp: exitTime },
-            ]);
-
-            syncToDB("vehicle_out", {
-              ticketId: vehicle.ticketId,
-              slotId: vehicle.slotId,
-              logId: exitTime.toString(),
-              timestamp: exitTime,
-            });
-          }, 3000);
-        }, 2000);
-      }
-    }, 4500); // Trigger setiap 4.5 detik
-
-    return () => clearInterval(demoInterval);
-  }, [config.demo_mode, speed]);
 
   return (
     <ParkingContext.Provider
