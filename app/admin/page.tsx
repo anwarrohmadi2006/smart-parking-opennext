@@ -118,6 +118,18 @@ export default function DashboardPage() {
     return `${Math.round(targetRecord.global_occupancy * 100)}%`;
   };
 
+  // Get historical occupancy sequence for the last 18 frames in simulation mode
+  const getSimulationHistory = () => {
+    if (speed === "off" || !replayData || replayData.length === 0) return "";
+    const history = [];
+    for (let i = 17; i >= 0; i--) {
+      const idx = Math.max(0, replayIndex - i);
+      const record = replayData[idx];
+      history.push(record ? record.global_occupancy.toFixed(4) : "0.0000");
+    }
+    return history.join(",");
+  };
+
   // Menghitung koordinat Y untuk grafik SVG
   const getSvgY = (pctStr: string | undefined | null) => {
     if (!pctStr) return 130; // Fallback bottom
@@ -172,6 +184,10 @@ export default function DashboardPage() {
         weather: currentWeather || "SUNNY",
         hour: virtualHour.toString(),
       });
+
+      if (speed !== "off") {
+        queryParams.append("history", getSimulationHistory());
+      }
 
       const res = await fetch(`/api/predict?${queryParams.toString()}`);
       if (res.ok) {

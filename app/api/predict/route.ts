@@ -21,19 +21,41 @@ export async function GET(request: NextRequest) {
     const queryCurrentOcc = currentOccParam !== null ? parseFloat(currentOccParam) : null;
     const queryWeather = weatherParam ? weatherParam.toUpperCase() : null;
     const queryHour = hourParam !== null ? parseInt(hourParam) : null;
-
-    // 1. Ambil data historis dari Firestore collection "occupancy_history"
-    const historyRef = collection(db, "occupancy_history");
-    const q = query(historyRef, orderBy("timestamp", "desc"), limit(18));
-    const querySnapshot = await getDocs(q);
+    const historyParam = searchParams.get("history");
 
     let observations: any[] = [];
-    querySnapshot.forEach((doc) => {
-      observations.push(doc.data());
-    });
 
-    // Karena di-query descending (terbaru dahulu), kita reverse agar urut kronologis
-    observations.reverse();
+    if (historyParam) {
+      // Parse history from query parameter for simulation to bypass Firestore read conflicts
+      const rates = historyParam.split(",").map((r) => parseFloat(r));
+      const baseTime = Date.now();
+      observations = rates.map((rate, idx) => {
+        const offsetMins = (rates.length - 1 - idx) * 10;
+        const mockTime = baseTime - offsetMins * 60 * 1000;
+        const date = new Date(mockTime);
+        
+        return {
+          timestamp: mockTime,
+          occupancy_rate: rate,
+          hour: date.getHours(),
+          day_of_week: date.getDay(),
+          is_weekend: date.getDay() === 0 || date.getDay() === 6 ? 1 : 0,
+          weather: queryWeather || "SUNNY",
+        };
+      });
+    } else {
+      // 1. Ambil data historis dari Firestore collection "occupancy_history"
+      const historyRef = collection(db, "occupancy_history");
+      const q = query(historyRef, orderBy("timestamp", "desc"), limit(18));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        observations.push(doc.data());
+      });
+
+      // Karena di-query descending (terbaru dahulu), kita reverse agar urut kronologis
+      observations.reverse();
+    }
 
     // 2. Fallback / Backfill jika data historis belum mencukupi 18 baris
     if (observations.length < 18) {
