@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       } else {
         try {
           const activeVehiclesSnap = await getDocs(collection(db, "activeVehicles"));
-          currentOccupancyRate = Math.min(1.0, activeVehiclesSnap.size / 24.0);
+          currentOccupancyRate = Math.min(1.0, activeVehiclesSnap.size / 164.0);
         } catch (err) {
           console.error("Gagal mengambil activeVehicles:", err);
         }

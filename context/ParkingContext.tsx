@@ -297,6 +297,48 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
   // Setup initial Realtime Database data structure if empty
   useEffect(() => {
+    if (speed === "off" && Object.keys(slotCameraMap).length > 0) {
+      console.log("🔄 Simulator dimatikan. Mereset basis data slots dan activeVehicles ke baseline kosong...");
+      
+      const resetDatabase = async () => {
+        try {
+          const slotsObj: Record<string, any> = {};
+          Object.keys(slotCameraMap).forEach((sid) => {
+            const camId = slotCameraMap[sid];
+            slotsObj[sid] = {
+              id: sid,
+              status: "kosong",
+              camera: camId,
+              location: `Zona Kamera ${camId}`
+            };
+          });
+          
+          // Tulis perubahan bersih ke Realtime Database
+          await set(ref(rtdb, "slots"), slotsObj);
+          await remove(ref(rtdb, "activeVehicles"));
+          await remove(ref(rtdb, "logs"));
+          
+          // Perbarui state lokal klien agar langsung sinkron
+          setSlots(Object.keys(slotCameraMap).map((sid) => ({
+            id: sid,
+            status: "kosong",
+            camera: slotCameraMap[sid],
+            location: `Zona Kamera ${slotCameraMap[sid]}`
+          })));
+          setActiveVehicles([]);
+          setLogs([]);
+          
+          console.log("✅ Reset basis data berhasil diselesaikan.");
+        } catch (err) {
+          console.error("❌ Gagal mereset basis data saat simulator mati:", err);
+        }
+      };
+      
+      resetDatabase();
+    }
+  }, [speed, slotCameraMap]);
+
+  useEffect(() => {
     if (Object.keys(slotCameraMap).length === 0) return;
     const initDb = async () => {
       try {
@@ -425,7 +467,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
         // Snapshot history untuk AI prediction — TETAP di Firestore
         const occupiedIn = activeVehicles.length + 1;
-        const rateIn = occupiedIn / 24.0;
+        const rateIn = occupiedIn / (slots.length || 164.0);
         const timeIn = Date.now();
         const dateIn = new Date(timeIn);
         await setDoc(doc(db, "occupancy_history", timeIn.toString()), {
@@ -453,7 +495,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
         // Snapshot history untuk AI prediction — TETAP di Firestore
         const occupiedOut = Math.max(0, activeVehicles.length - 1);
-        const rateOut = occupiedOut / 24.0;
+        const rateOut = occupiedOut / (slots.length || 164.0);
         const timeOut = Date.now();
         const dateOut = new Date(timeOut);
         await setDoc(doc(db, "occupancy_history", timeOut.toString()), {
