@@ -222,7 +222,18 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
     newSlots.sort((a, b) => a.id.localeCompare(b.id));
     setSlots(newSlots);
-  }, [replayIndex, replayData, slotCameraMap, injectedScenario]);
+
+    // Sync to Realtime DB so other tabs (Entry/Exit dashboards) are perfectly synchronized in real-time!
+    if (speed !== "off") {
+      const slotsDict: Record<string, any> = {};
+      newSlots.forEach((s) => {
+        slotsDict[s.id] = s;
+      });
+      set(ref(rtdb, "slots"), slotsDict).catch((err) => 
+        console.error("Error syncing simulation slots to RTDB:", err)
+      );
+    }
+  }, [replayIndex, replayData, slotCameraMap, injectedScenario, speed]);
 
   // 2. Timer loop for simulation increments
   useEffect(() => {

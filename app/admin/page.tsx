@@ -118,6 +118,14 @@ export default function DashboardPage() {
     return `${Math.round(targetRecord.global_occupancy * 100)}%`;
   };
 
+  // Menghitung koordinat Y untuk grafik SVG
+  const getSvgY = (pctStr: string | undefined | null) => {
+    if (!pctStr) return 130; // Fallback bottom
+    const val = parseFloat(pctStr.replace('%', ''));
+    if (isNaN(val)) return 130;
+    return 130 - (val / 100) * 110;
+  };
+
   // Filtered slots for grid view based on active camera tab
   const filteredSlots = activeCamera === 'semua' ? slots : slots.filter(s => s.camera === activeCamera);
 
@@ -250,7 +258,7 @@ export default function DashboardPage() {
       statusPeringatan = '🔴 Peringatan: Kapasitas Kritis!';
     }
     setPrediction({ masuk: estimasiMasuk, keluar: estimasiKeluar, status: statusPeringatan });
-  }, [occupancyPercentage]);
+  }, [occupancyPercentage, currentWeather, currentTimestamp, speed]);
 
   const handleExportCSV = () => {
     if (logs.length === 0) {
@@ -920,6 +928,106 @@ export default function DashboardPage() {
                             *Prediksi 30m dihitung oleh model CLSTAN, sedangkan 10m &amp; 20m diinterpolasikan linier.
                           </p>
                         </div>
+
+                        {/* Grafik Realtime Perbandingan Aktual vs Prediksi */}
+                        {speed !== "off" && getActualFutureOccupancy(30) !== null && (
+                          <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                            <div className="flex justify-between items-center mb-2 px-1">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Visualisasi Perbandingan Aktual vs Prediksi</p>
+                              <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                  <span className="text-emerald-400">Prediksi</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                                  <span className="text-blue-400">Aktual</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="relative w-full h-[150px] bg-slate-950/50 rounded-lg overflow-hidden border border-slate-900/80">
+                              {/* Grid lines */}
+                              <svg className="w-full h-full animate-fade-in" viewBox="0 0 500 150" preserveAspectRatio="none">
+                                <defs>
+                                  {/* Gradients */}
+                                  <linearGradient id="predGlow" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.0"/>
+                                  </linearGradient>
+                                  <linearGradient id="actGlow" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2"/>
+                                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0"/>
+                                  </linearGradient>
+                                </defs>
+
+                                {/* Horizontal reference lines */}
+                                <line x1="40" y1="20" x2="460" y2="20" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3" />
+                                <line x1="40" y1="75" x2="460" y2="75" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3" />
+                                <line x1="40" y1="130" x2="460" y2="130" stroke="#1e293b" strokeWidth="1" />
+
+                                {/* Vertical grid lines */}
+                                <line x1="40" y1="20" x2="40" y2="130" stroke="#1e293b" strokeWidth="1" />
+                                <line x1="180" y1="20" x2="180" y2="130" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3" />
+                                <line x1="320" y1="20" x2="320" y2="130" stroke="#1e293b" strokeWidth="1" strokeDasharray="3,3" />
+                                <line x1="460" y1="20" x2="460" y2="130" stroke="#1e293b" strokeWidth="1" />
+
+                                {/* Y-axis Labels */}
+                                <text x="10" y="24" fill="#64748b" fontSize="8" fontWeight="bold" fontFamily="monospace">100%</text>
+                                <text x="15" y="79" fill="#64748b" fontSize="8" fontWeight="bold" fontFamily="monospace">50%</text>
+                                <text x="20" y="134" fill="#64748b" fontSize="8" fontWeight="bold" fontFamily="monospace">0%</text>
+
+                                {/* X-axis Labels */}
+                                <text x="40" y="145" fill="#64748b" fontSize="8" fontWeight="bold" textAnchor="middle">Saat Ini</text>
+                                <text x="180" y="145" fill="#64748b" fontSize="8" fontWeight="bold" textAnchor="middle">+10m</text>
+                                <text x="320" y="145" fill="#64748b" fontSize="8" fontWeight="bold" textAnchor="middle">+20m</text>
+                                <text x="460" y="145" fill="#64748b" fontSize="8" fontWeight="bold" textAnchor="middle">+30m</text>
+
+                                {/* Actual Glow Area */}
+                                <path 
+                                  d={`M 40,130 L 40,${getSvgY(`${occupancyPercentage}%`)} L 180,${getSvgY(getActualFutureOccupancy(10) || `${occupancyPercentage}%`)} L 320,${getSvgY(getActualFutureOccupancy(20) || `${occupancyPercentage}%`)} L 460,${getSvgY(getActualFutureOccupancy(30) || `${occupancyPercentage}%`)} L 460,130 Z`} 
+                                  fill="url(#actGlow)"
+                                />
+
+                                {/* Predicted Glow Area */}
+                                <path 
+                                  d={`M 40,130 L 40,${getSvgY(`${occupancyPercentage}%`)} L 180,${getSvgY(aiPrediction?.predicted_pct_10min || `${occupancyPercentage}%`)} L 320,${getSvgY(aiPrediction?.predicted_pct_20min || `${occupancyPercentage}%`)} L 460,${getSvgY(aiPrediction?.predicted_pct || `${occupancyPercentage}%`)} L 460,130 Z`} 
+                                  fill="url(#predGlow)"
+                                />
+
+                                {/* Actual Line */}
+                                <path 
+                                  d={`M 40,${getSvgY(`${occupancyPercentage}%`)} L 180,${getSvgY(getActualFutureOccupancy(10) || `${occupancyPercentage}%`)} L 320,${getSvgY(getActualFutureOccupancy(20) || `${occupancyPercentage}%`)} L 460,${getSvgY(getActualFutureOccupancy(30) || `${occupancyPercentage}%`)}`} 
+                                  fill="none" 
+                                  stroke="#3b82f6" 
+                                  strokeWidth="3" 
+                                  strokeLinecap="round"
+                                />
+
+                                {/* Predicted Line */}
+                                <path 
+                                  d={`M 40,${getSvgY(`${occupancyPercentage}%`)} L 180,${getSvgY(aiPrediction?.predicted_pct_10min || `${occupancyPercentage}%`)} L 320,${getSvgY(aiPrediction?.predicted_pct_20min || `${occupancyPercentage}%`)} L 460,${getSvgY(aiPrediction?.predicted_pct || `${occupancyPercentage}%`)}`} 
+                                  fill="none" 
+                                  stroke="#10b981" 
+                                  strokeWidth="3" 
+                                  strokeLinecap="round"
+                                />
+
+                                {/* Data Nodes (Actual - Blue) */}
+                                <circle cx="40" cy={getSvgY(`${occupancyPercentage}%`)} r="4" fill="#3b82f6" stroke="#0f172a" strokeWidth="1.5" />
+                                <circle cx="180" cy={getSvgY(getActualFutureOccupancy(10) || `${occupancyPercentage}%`)} r="4" fill="#3b82f6" stroke="#0f172a" strokeWidth="1.5" />
+                                <circle cx="320" cy={getSvgY(getActualFutureOccupancy(20) || `${occupancyPercentage}%`)} r="4" fill="#3b82f6" stroke="#0f172a" strokeWidth="1.5" />
+                                <circle cx="460" cy={getSvgY(getActualFutureOccupancy(30) || `${occupancyPercentage}%`)} r="4" fill="#3b82f6" stroke="#0f172a" strokeWidth="1.5" />
+
+                                {/* Data Nodes (Predicted - Emerald) */}
+                                <circle cx="40" cy={getSvgY(`${occupancyPercentage}%`)} r="4" fill="#10b981" stroke="#0f172a" strokeWidth="1.5" />
+                                <circle cx="180" cy={getSvgY(aiPrediction?.predicted_pct_10min || `${occupancyPercentage}%`)} r="4" fill="#10b981" stroke="#0f172a" strokeWidth="1.5" />
+                                <circle cx="320" cy={getSvgY(aiPrediction?.predicted_pct_20min || `${occupancyPercentage}%`)} r="4" fill="#10b981" stroke="#0f172a" strokeWidth="1.5" />
+                                <circle cx="460" cy={getSvgY(aiPrediction?.predicted_pct || `${occupancyPercentage}%`)} r="4" fill="#10b981" stroke="#0f172a" strokeWidth="1.5" />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
 
                         {/* AI Narrative Bubble (Gemini) */}
                         <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/60 text-xs text-slate-300 leading-relaxed italic relative">
