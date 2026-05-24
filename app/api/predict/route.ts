@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore/lite";
+import { collection, query, orderBy, limit, getDocs, where } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase-lite";
 
 // URL FastAPI server (lokal default atau dideploy di Modal.com)
@@ -44,9 +44,14 @@ export async function GET(request: NextRequest) {
         };
       });
     } else {
-      // 1. Ambil data historis dari Firestore collection "occupancy_history"
+      // 1. Ambil data historis dari Firestore collection "occupancy_history" (cegah data leak dari record masa depan simulasi)
       const historyRef = collection(db, "occupancy_history");
-      const q = query(historyRef, orderBy("timestamp", "desc"), limit(18));
+      const q = query(
+        historyRef, 
+        where("timestamp", "<=", now),
+        orderBy("timestamp", "desc"), 
+        limit(18)
+      );
       const querySnapshot = await getDocs(q);
 
       querySnapshot.forEach((doc) => {
