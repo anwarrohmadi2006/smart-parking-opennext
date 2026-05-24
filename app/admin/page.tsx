@@ -105,6 +105,19 @@ export default function DashboardPage() {
   const occupiedSlots = slots.length - availableSlots;
   const occupancyPercentage = slots.length > 0 ? Math.round((occupiedSlots / slots.length) * 100) : 0;
 
+  // Get actual future occupancies for comparison if in simulation mode
+  const getActualFutureOccupancy = (offsetMinutes: number) => {
+    if (speed === "off" || !replayData || replayData.length === 0) return null;
+    const stepsAhead = Math.round(offsetMinutes / 10);
+    const targetIndex = replayIndex + stepsAhead;
+    if (targetIndex >= replayData.length) return null;
+    
+    const targetRecord = replayData[targetIndex];
+    if (!targetRecord) return null;
+    
+    return `${Math.round(targetRecord.global_occupancy * 100)}%`;
+  };
+
   // Filtered slots for grid view based on active camera tab
   const filteredSlots = activeCamera === 'semua' ? slots : slots.filter(s => s.camera === activeCamera);
 
@@ -823,6 +836,11 @@ export default function DashboardPage() {
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Prediksi Okupansi (30 Menit)</p>
                             <div className="flex items-center gap-2">
                               <p className="text-3xl font-black font-mono text-emerald-400 tracking-tight">{aiPrediction.predicted_pct}</p>
+                              {getActualFutureOccupancy(30) !== null && (
+                                <span className="text-[10px] text-slate-300 font-bold whitespace-nowrap bg-blue-950/80 border border-blue-800/40 px-2.5 py-1 rounded-lg">
+                                  Aktual: <span className="text-blue-400 font-black">{getActualFutureOccupancy(30)}</span>
+                                </span>
+                              )}
                               {aiPrediction.change_rate_per_interval !== undefined && (
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1 ${
                                   aiPrediction.change_rate_per_interval > 0.005 
@@ -867,6 +885,11 @@ export default function DashboardPage() {
                               <span className="w-3.5 h-3.5 rounded-full bg-blue-400 border-2 border-slate-950 flex items-center justify-center"></span>
                               <span className="text-[9px] text-slate-400 font-medium mt-1">+10 Mins</span>
                               <span className="text-[11px] font-bold text-blue-300 font-mono mt-0.5">{aiPrediction.predicted_pct_10min || `${occupancyPercentage}%`}</span>
+                              {getActualFutureOccupancy(10) !== null && (
+                                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
+                                  Aktual: <span className="text-slate-300 font-semibold">{getActualFutureOccupancy(10)}</span>
+                                </span>
+                              )}
                             </div>
 
                             {/* Node 3: 20 Min */}
@@ -874,6 +897,11 @@ export default function DashboardPage() {
                               <span className="w-3.5 h-3.5 rounded-full bg-indigo-400 border-2 border-slate-950 flex items-center justify-center"></span>
                               <span className="text-[9px] text-slate-400 font-medium mt-1">+20 Mins</span>
                               <span className="text-[11px] font-bold text-indigo-300 font-mono mt-0.5">{aiPrediction.predicted_pct_20min || `${occupancyPercentage}%`}</span>
+                              {getActualFutureOccupancy(20) !== null && (
+                                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
+                                  Aktual: <span className="text-slate-300 font-semibold">{getActualFutureOccupancy(20)}</span>
+                                </span>
+                              )}
                             </div>
 
                             {/* Node 4: 30 Min (CLSTAN) */}
@@ -881,6 +909,11 @@ export default function DashboardPage() {
                               <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950 flex items-center justify-center shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
                               <span className="text-[9px] text-emerald-400 font-semibold mt-1" title="Dihitung oleh model CLSTAN">+30 Mins*</span>
                               <span className="text-[11px] font-bold text-emerald-400 font-mono mt-0.5">{aiPrediction.predicted_pct}</span>
+                              {getActualFutureOccupancy(30) !== null && (
+                                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
+                                  Aktual: <span className="text-emerald-400 font-bold">{getActualFutureOccupancy(30)}</span>
+                                </span>
+                              )}
                             </div>
                           </div>
                           <p className="text-[8px] text-slate-500 italic mt-3 text-right">
