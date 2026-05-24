@@ -239,7 +239,7 @@ def build_features(obs_list):
             'dow_cos':  np.cos(2*np.pi*o.day_of_week/7),
         })
     df = pd.DataFrame(rows)
-    for lag in [1,2,3,6,12,24]:
+    for lag in [1, 2, 3, 6, 12, 24, 48]:
         df[f'lag_{lag}'] = df['occupancy_rate'].shift(lag).fillna(df['occupancy_rate'].mean() if not df['occupancy_rate'].empty else 0.0)
     for w in [3,6,12,24,48]:
         df[f'roll_mean_{w}'] = df['occupancy_rate'].rolling(w,min_periods=1).mean()

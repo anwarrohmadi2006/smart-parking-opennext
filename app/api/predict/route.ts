@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { collection, query, orderBy, limit, getDocs, where } from "firebase/firestore/lite";
 import { db } from "@/lib/firebase-lite";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // URL FastAPI server (lokal default atau dideploy di Modal.com)
 const FASTAPI_URL = process.env.FASTAPI_URL || "https://anwarrohmadi111--smartpark-api-web-app.modal.run/predict";
 
@@ -50,7 +53,7 @@ export async function GET(request: NextRequest) {
         historyRef, 
         where("timestamp", "<=", now),
         orderBy("timestamp", "desc"), 
-        limit(18)
+        limit(66)
       );
       const querySnapshot = await getDocs(q);
 
@@ -62,8 +65,8 @@ export async function GET(request: NextRequest) {
       observations.reverse();
     }
 
-    // 2. Fallback / Backfill jika data historis belum mencukupi 18 baris
-    if (observations.length < 18) {
+    // 2. Fallback / Backfill jika data historis belum mencukupi 66 baris
+    if (observations.length < 66) {
       console.log(`[Proxy Predict] Data historis hanya ada ${observations.length}, melakukan backfill...`);
       
       // Ambil occupancy saat ini dari activeVehicles atau parameter query untuk baseline
@@ -79,8 +82,8 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Lengkapi sisa observations ke 18 baris (mundur ke belakang per 10 menit)
-      const needed = 18 - observations.length;
+      // Lengkapi sisa observations ke 66 baris (mundur ke belakang per 10 menit)
+      const needed = 66 - observations.length;
       const baseTime = observations.length > 0 ? observations[0].timestamp : Date.now();
       const backfilled: any[] = [];
 

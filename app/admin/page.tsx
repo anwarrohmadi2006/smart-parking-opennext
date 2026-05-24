@@ -122,7 +122,7 @@ export default function DashboardPage() {
   const getSimulationHistory = () => {
     if (speed === "off" || !replayData || replayData.length === 0) return "";
     const history = [];
-    for (let i = 17; i >= 0; i--) {
+    for (let i = 65; i >= 0; i--) {
       const idx = Math.max(0, replayIndex - i);
       const record = replayData[idx];
       history.push(record ? record.global_occupancy.toFixed(4) : "0.0000");
@@ -189,7 +189,7 @@ export default function DashboardPage() {
         queryParams.append("history", getSimulationHistory());
       }
 
-      const res = await fetch(`/api/predict?${queryParams.toString()}`);
+      const res = await fetch(`/api/predict?${queryParams.toString()}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         const latency = Date.now() - startTime;
