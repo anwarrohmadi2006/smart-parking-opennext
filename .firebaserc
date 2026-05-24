@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "ultra-optics-428313-h6"
+  },
   "targets": {
     "ultra-optics-428313-h6": {
       "database": {
