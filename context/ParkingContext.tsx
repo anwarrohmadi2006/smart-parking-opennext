@@ -493,7 +493,15 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
   // Efek Simulasi Otomatis (Demo Mode)
   useEffect(() => {
-    if (!config.demo_mode) return;
+    if (!config.demo_mode || speed !== "off") return;
+
+    // Hanya jalankan simulasi otomatis di halaman utama atau admin (bukan display pasif)
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path === "/dashboard" || path === "/exit-display") {
+        return;
+      }
+    }
 
     const demoInterval = setInterval(() => {
       const {
@@ -600,7 +608,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
     }, 4500); // Trigger setiap 4.5 detik
 
     return () => clearInterval(demoInterval);
-  }, [config.demo_mode]);
+  }, [config.demo_mode, speed]);
 
   return (
     <ParkingContext.Provider

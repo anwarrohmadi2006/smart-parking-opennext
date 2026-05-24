@@ -255,6 +255,14 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    // Jika simulasi berjalan sangat cepat (300x ke atas), batasi kueri API hanya setiap 1 jam virtual (indeks kelipatan 6)
+    if (speed !== "off" && isPlaying) {
+      const isVeryFast = speed === "300x" || speed === "600x" || speed === "1200x";
+      if (isVeryFast && replayIndex % 6 !== 0) {
+        return; // Lewati pemanggilan API untuk mencegah kemacetan jaringan dan overload di Modal.com
+      }
+    }
+
     fetchAiPrediction();
     
     // Fallback/Legacy mock calculations for old UI prediction consistency if needed
@@ -274,7 +282,7 @@ export default function DashboardPage() {
       statusPeringatan = '🔴 Peringatan: Kapasitas Kritis!';
     }
     setPrediction({ masuk: estimasiMasuk, keluar: estimasiKeluar, status: statusPeringatan });
-  }, [occupancyPercentage, currentWeather, currentTimestamp, speed]);
+  }, [occupancyPercentage, currentWeather, currentTimestamp, speed, isPlaying, replayIndex]);
 
   const handleExportCSV = () => {
     if (logs.length === 0) {
