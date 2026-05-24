@@ -10,8 +10,6 @@ const firebaseConfig = {
   authDomain: "ultra-optics-428313-h6.firebaseapp.com",
   messagingSenderId: "75598703644",
   measurementId: "",
-  // URL Realtime Database — ganti setelah aktifkan di Firebase Console
-  // Format: https://<project-id>-default-rtdb.<region>.firebasedatabase.app
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
     "https://ultra-optics-428313-h6-default-rtdb.asia-southeast1.firebasedatabase.app",
 };
