@@ -172,10 +172,12 @@ export default function DashboardPage() {
       
       const currentRate = occupancyPercentage / 100.0;
       let virtualHour = new Date().getHours();
+      let virtualDay = new Date().getDay();
       if (speed !== "off") {
         try {
           const date = new Date(currentTimestamp.replace(/-/g, "/"));
           virtualHour = date.getHours();
+          virtualDay = date.getDay();
         } catch (e) {}
       }
 
@@ -183,6 +185,7 @@ export default function DashboardPage() {
         current_occ: currentRate.toFixed(4),
         weather: currentWeather || "SUNNY",
         hour: virtualHour.toString(),
+        day_of_week: virtualDay.toString(),
       });
 
       if (speed !== "off") {

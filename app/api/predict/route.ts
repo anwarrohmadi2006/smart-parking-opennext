@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     const queryCurrentOcc = currentOccParam !== null ? parseFloat(currentOccParam) : null;
     const queryWeather = weatherParam ? weatherParam.toUpperCase() : null;
     const queryHour = hourParam !== null ? parseInt(hourParam) : null;
+    const dayOfWeekParam = searchParams.get("day_of_week");
+    const queryDayOfWeek = dayOfWeekParam !== null ? parseInt(dayOfWeekParam) : null;
     const historyParam = searchParams.get("history");
 
     let observations: any[] = [];
@@ -127,11 +129,22 @@ export async function GET(request: NextRequest) {
         }
 
         let newHour = obs.hour;
+        let newDayOfWeek = obs.day_of_week;
+        let newIsWeekend = obs.is_weekend;
+
         if (queryHour !== null) {
-          // Sesuaikan mundur per 10 menit dari jam virtual saat ini
           const offsetMins = (observations.length - 1 - idx) * 10;
-          const adjustedHour = (queryHour - Math.floor(offsetMins / 60) + 24) % 24;
+          const offsetHours = Math.floor(offsetMins / 60);
+          const adjustedHour = (queryHour - offsetHours + 24) % 24;
           newHour = adjustedHour;
+
+          if (queryDayOfWeek !== null) {
+            const daysToShift = Math.floor((queryHour - offsetHours) / 24);
+            let adjustedDay = (queryDayOfWeek + daysToShift) % 7;
+            if (adjustedDay < 0) adjustedDay += 7;
+            newDayOfWeek = adjustedDay;
+            newIsWeekend = (adjustedDay === 0 || adjustedDay === 6) ? 1 : 0;
+          }
         }
 
         return {
@@ -139,6 +152,8 @@ export async function GET(request: NextRequest) {
           occupancy_rate: newRate,
           weather: newWeather,
           hour: newHour,
+          day_of_week: newDayOfWeek,
+          is_weekend: newIsWeekend,
         };
       });
     }

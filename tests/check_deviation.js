@@ -40,16 +40,16 @@ async function runDeviationCheck() {
     const currentIndex = START_INDEX + i;
     const currentRecord = replayData[currentIndex];
     
-    // Ambil data aktual 30 menit ke depan (+3 indeks ke depan)
-    const targetIndex = currentIndex + 3;
+    // Ambil data aktual 40 menit ke depan (+4 indeks ke depan) karena model dilatih dengan horizon 4 step
+    const targetIndex = currentIndex + 4;
     if (targetIndex >= replayData.length) break;
     
     const targetRecord = replayData[targetIndex];
     const actualFutureOcc = targetRecord.global_occupancy; // Nilai desimal (0.0 s.d 1.0)
     
-    // Bangun 18 sequence observasi historis ke belakang
+    // Bangun 66 sequence observasi historis ke belakang
     const observations = [];
-    for (let j = 17; j >= 0; j--) {
+    for (let j = 65; j >= 0; j--) {
       const historyIndex = currentIndex - j;
       const historyRecord = replayData[historyIndex] || currentRecord;
       
