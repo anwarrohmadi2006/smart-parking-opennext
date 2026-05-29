@@ -23,9 +23,9 @@ def main():
     df = df.dropna(subset=['timestamp_parsed'])
     df['weather_clean'] = df['weather'].map({'S': 'SUNNY', 'C': 'OVERCAST', 'R': 'RAINY'}).fillna('SUNNY')
     
-    # 2. Select 5-Day contiguous range (Tuesday 2016-01-12 to Saturday 2016-01-16)
-    start_date = "2016-01-12 00:00:00"
-    end_date = "2016-01-16 23:59:59"
+    # 2. Select 9-Day range (Saturday 2015-11-14 to Sunday 2015-11-22)
+    start_date = "2015-11-14 00:00:00"
+    end_date = "2015-11-22 23:59:59"
     df_filtered = df[(df['timestamp_parsed'] >= start_date) & (df['timestamp_parsed'] <= end_date)].copy()
     print(f"Filtered date range from {start_date} to {end_date}. Rows: {len(df_filtered)}")
     
@@ -68,12 +68,6 @@ def main():
     for idx, (timestamp, group_df) in enumerate(groups):
         if group_df.empty:
             # If the group is empty, carry forward the previous states
-            # Night decay logic: if it's late at night and no data, assume cars gradually leave
-            if timestamp.hour >= 20 or timestamp.hour < 7:
-                for sid in current_slot_states:
-                    if current_slot_states[sid] == 1 and np.random.random() < 0.1: # 10% chance to leave every 10 min
-                        current_slot_states[sid] = 0
-
             global_occ = sum(current_slot_states.values()) / max(1, total_slots)
             weather = "SUNNY" if len(replay_records) == 0 else replay_records[-1]['weather']
         else:

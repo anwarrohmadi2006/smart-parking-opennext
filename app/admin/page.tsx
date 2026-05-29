@@ -794,7 +794,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => {
                         if (speed === "off") setSpeed("150x");
-                        setInjectedScenario({ type: "camera_offline", value: "02" });
+                        setInjectedScenario({ type: "camera_offline", value: ["02", "05", "08"] });
                       }}
                       className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
                         injectedScenario?.type === "camera_offline"
@@ -802,7 +802,7 @@ export default function DashboardPage() {
                           : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
                       }`}
                     >
-                      ⚠️ Kamera 02 Putus (Stale Data)
+                      ⚠️ Simulasikan Kamera [02, 05, 08] Mati
                     </button>
 
                     {injectedScenario && (

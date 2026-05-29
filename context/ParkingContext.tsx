@@ -207,7 +207,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
       const camId = slotCameraMap[sid];
 
       // Jika skenario 'camera_offline' aktif untuk kamera ini, biarkan slot tetap basi (jangan diupdate)
-      const isCameraOffline = injectedScenario?.type === "camera_offline" && injectedScenario.value === camId;
+      const isCameraOffline = injectedScenario?.type === "camera_offline" && (injectedScenario.value as string[]).includes(camId);
       if (isCameraOffline) {
         const oldSlot = slots.find(s => s.id === sid);
         if (oldSlot) return oldSlot; // Retain stale state
