@@ -42,6 +42,7 @@ export interface Slot {
   status: "kosong" | "terisi"; // Status slot saat ini
   location: string; // Contoh: 'Zona Kamera 01'
   camera?: string; // ID Kamera pemantau (misal: '01')
+  lastUpdated?: string; // Menyimpan waktu terakhir slot ini diupdate
 }
 
 export interface ActiveVehicle {
@@ -93,8 +94,8 @@ interface ParkingContextType {
   replayData: any[];
   currentTimestamp: string;
   currentWeather: string;
-  injectedScenario: { type: "weather" | "occupancy"; value: any } | null;
-  setInjectedScenario: React.Dispatch<React.SetStateAction<{ type: "weather" | "occupancy"; value: any } | null>>;
+  injectedScenario: { type: "weather" | "occupancy" | "camera_offline"; value: any } | null;
+  setInjectedScenario: (scenario: { type: "weather" | "occupancy" | "camera_offline"; value: any } | null) => void;
 }
 
 // ==========================================
@@ -156,7 +157,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
   const [speed, setSpeed] = useState<string>("off"); // default off (Live Mode)
   const [replayData, setReplayData] = useState<any[]>([]);
   const [slotCameraMap, setSlotCameraMap] = useState<Record<string, string>>({});
-  const [injectedScenario, setInjectedScenario] = useState<{ type: "weather" | "occupancy"; value: any } | null>(null);
+  const [injectedScenario, setInjectedScenario] = useState<{ type: "weather" | "occupancy" | "camera_offline"; value: any } | null>(null);
 
   // Load replay data & slot mappings
   useEffect(() => {
@@ -205,6 +206,13 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
     const newSlots = Object.keys(slotCameraMap).map((sid) => {
       const camId = slotCameraMap[sid];
 
+      // Jika skenario 'camera_offline' aktif untuk kamera ini, biarkan slot tetap basi (jangan diupdate)
+      const isCameraOffline = injectedScenario?.type === "camera_offline" && injectedScenario.value === camId;
+      if (isCameraOffline) {
+        const oldSlot = slots.find(s => s.id === sid);
+        if (oldSlot) return oldSlot; // Retain stale state
+      }
+
       let isOccupied = datasetSlots[sid] === 1;
       if (injectedOccupiedList.includes(sid)) {
         isOccupied = true;
@@ -215,6 +223,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
         status: isOccupied ? ("terisi" as const) : ("kosong" as const),
         camera: camId,
         location: `Zona Kamera ${camId}`,
+        lastUpdated: currentData.timestamp,
       };
     });
 

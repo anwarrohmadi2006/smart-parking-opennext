@@ -791,6 +791,20 @@ export default function DashboardPage() {
                       🚨 Suntik Kendaraan Darurat (+30 Slot)
                     </button>
 
+                    <button
+                      onClick={() => {
+                        if (speed === "off") setSpeed("150x");
+                        setInjectedScenario({ type: "camera_offline", value: "02" });
+                      }}
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                        injectedScenario?.type === "camera_offline"
+                          ? "bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20"
+                          : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                      }`}
+                    >
+                      ⚠️ Kamera 02 Putus (Stale Data)
+                    </button>
+
                     {injectedScenario && (
                       <button
                         onClick={() => setInjectedScenario(null)}
@@ -1150,23 +1164,47 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
                   {filteredSlots.map((slot) => {
                     const isEmpty = slot.status === 'kosong';
+                    
+                    // Cek apakah slot ini datanya basi (Kamera mati > 5 menit waktu virtual)
+                    let isStale = false;
+                    if (slot.lastUpdated && speed !== "off") {
+                      try {
+                        const currentMs = new Date(currentTimestamp.replace(/-/g, "/")).getTime();
+                        const updatedMs = new Date(slot.lastUpdated.replace(/-/g, "/")).getTime();
+                        if (currentMs - updatedMs > 5 * 60 * 1000) {
+                          isStale = true;
+                        }
+                      } catch (e) {}
+                    }
+
+                    const bgClass = isEmpty 
+                      ? (isStale ? 'bg-amber-50 border border-amber-300 border-dashed' : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300')
+                      : (isStale ? 'bg-amber-500 border border-amber-600 shadow-sm' : 'bg-blue-500 border border-blue-600 shadow-sm');
+                      
+                    const textClass = isEmpty
+                      ? (isStale ? 'text-amber-600' : 'text-slate-400')
+                      : (isStale ? 'text-amber-50' : 'text-blue-100');
+
                     return (
                       <div 
                         key={slot.id} 
+                        title={isStale ? `Kamera Terputus! Data terakhir: ${slot.lastUpdated}` : `Slot ${slot.id}`}
                         className={`
-                          p-3 rounded-lg flex flex-col items-center justify-center transition-all duration-200
-                          ${isEmpty 
-                            ? 'bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300' 
-                            : 'bg-blue-500 border border-blue-600 shadow-sm'
-                          }
+                          relative p-3 rounded-lg flex flex-col items-center justify-center transition-all duration-200
+                          ${bgClass}
                         `}
                       >
-                        <span className={`text-[10px] font-bold ${isEmpty ? 'text-slate-400' : 'text-blue-100'}`}>
+                        {isStale && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold shadow-md" title="Data Basi / Kamera Mati">
+                            ⚠️
+                          </div>
+                        )}
+                        <span className={`text-[10px] font-bold ${textClass}`}>
                           {slot.id}
                         </span>
                         <span 
-                          className={`text-[9px] uppercase tracking-wider mt-1 ${
-                            isEmpty ? 'text-slate-300' : 'text-white opacity-90'
+                          className={`text-[9px] uppercase tracking-wider mt-1 font-semibold ${
+                            isEmpty ? (isStale ? 'text-amber-500' : 'text-slate-300') : 'text-white opacity-90'
                           }`}
                         >
                           {isEmpty ? 'Empty' : 'Parked'}
