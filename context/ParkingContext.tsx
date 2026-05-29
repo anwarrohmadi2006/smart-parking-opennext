@@ -42,7 +42,7 @@ export interface Slot {
   status: "kosong" | "terisi"; // Status slot saat ini
   location: string; // Contoh: 'Zona Kamera 01'
   camera?: string; // ID Kamera pemantau (misal: '01')
-  lastUpdated?: string; // Menyimpan waktu terakhir slot ini diupdate
+  lastUpdated?: string | number; // Menyimpan waktu terakhir slot ini diupdate (string dari simulator, number dari live mode)
 }
 
 export interface ActiveVehicle {
