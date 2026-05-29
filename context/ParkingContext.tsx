@@ -316,7 +316,8 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
               id: sid,
               status: "kosong",
               camera: camId,
-              location: `Zona Kamera ${camId}`
+              location: `Zona Kamera ${camId}`,
+              lastUpdated: Date.now()
             };
           });
           
@@ -330,7 +331,8 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
             id: sid,
             status: "kosong",
             camera: slotCameraMap[sid],
-            location: `Zona Kamera ${slotCameraMap[sid]}`
+            location: `Zona Kamera ${slotCameraMap[sid]}`,
+            lastUpdated: Date.now()
           })));
           setActiveVehicles([]);
           setLogs([]);
@@ -455,7 +457,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
       } else if (action === "vehicle_in") {
         // Update slot status
-        await update(ref(rtdb, `slots/${payload.slotId}`), { status: "terisi" });
+        await update(ref(rtdb, `slots/${payload.slotId}`), { status: "terisi", lastUpdated: Date.now() });
 
         // Tambah activeVehicle
         await set(ref(rtdb, `activeVehicles/${payload.ticketId}`), {
@@ -487,7 +489,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
 
       } else if (action === "vehicle_out") {
         // Update slot status
-        await update(ref(rtdb, `slots/${payload.slotId}`), { status: "kosong" });
+        await update(ref(rtdb, `slots/${payload.slotId}`), { status: "kosong", lastUpdated: Date.now() });
 
         // Hapus activeVehicle
         await remove(ref(rtdb, `activeVehicles/${payload.ticketId}`));

@@ -1165,12 +1165,22 @@ export default function DashboardPage() {
                   {filteredSlots.map((slot) => {
                     const isEmpty = slot.status === 'kosong';
                     
-                    // Cek apakah slot ini datanya basi (Kamera mati > 5 menit waktu virtual)
+                    // Cek apakah slot ini datanya basi (Kamera mati > 5 menit waktu virtual atau nyata)
                     let isStale = false;
-                    if (slot.lastUpdated && speed !== "off") {
+                    const isGlobalOffline = typeof window !== 'undefined' && !navigator.onLine;
+
+                    // Jika aplikasi benar-benar offline (tidak ada internet), kita tidak menganggap kamera mati, melainkan sistem global yang offline.
+                    if (!isGlobalOffline && slot.lastUpdated) {
                       try {
-                        const currentMs = new Date(currentTimestamp.replace(/-/g, "/")).getTime();
-                        const updatedMs = new Date(slot.lastUpdated.replace(/-/g, "/")).getTime();
+                        const currentMs = speed !== "off" 
+                          ? new Date(currentTimestamp.replace(/-/g, "/")).getTime() 
+                          : Date.now();
+                        
+                        // Handle format string dari simulator ("2015-11-16 07:10") ATAU format number (unix ms) dari Live Mode
+                        const updatedMs = typeof slot.lastUpdated === 'number'
+                          ? slot.lastUpdated
+                          : new Date(String(slot.lastUpdated).replace(/-/g, "/")).getTime();
+
                         if (currentMs - updatedMs > 5 * 60 * 1000) {
                           isStale = true;
                         }
