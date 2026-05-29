@@ -175,7 +175,9 @@ export async function GET(request: NextRequest) {
     const payloadHash = JSON.stringify(payload.observations);
     const timeLimit = 2000; // 2 seconds minimum throttle
     if (cachedResponse && cachedPayloadHash === payloadHash && now - lastFetchTime < timeLimit) {
-      return NextResponse.json(cachedResponse);
+      return NextResponse.json(cachedResponse, {
+        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" }
+      });
     }
 
     // 4. Kirim ke FastAPI ML Server
@@ -211,11 +213,13 @@ export async function GET(request: NextRequest) {
       cachedPayloadHash = payloadHash;
       lastFetchTime = now;
 
-      return NextResponse.json(data);
+      return NextResponse.json(data, {
+        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" }
+      });
     } catch (apiError: any) {
-      console.warn("⚠️ Gagal koneksi ke FastAPI server, menggunakan rule-based fallback...");
+      console.warn("⚠️ Gagal koneksi ke FastAPI server, fallback ke Cloudflare Workers AI...");
       
-      // Rule-based fallback untuk menjaga stabilitas UI jika FastAPI mati
+      // Rule-based fallback metrics
       const currentRate = observations[observations.length - 1].occupancy_rate;
       const pct = Math.round(currentRate * 100);
       let urgency = "NORMAL";
@@ -232,6 +236,30 @@ export async function GET(request: NextRequest) {
         summary = `☆ Parkir mendekati penuh (${pct}%).`;
       }
 
+      let ai_narrative = `[Lokal Fallback] Tingkat hunian parkir saat ini terpantau ${pct}%. ${summary} Silakan lakukan penyesuaian operasional lapangan jika diperlukan.`;
+
+      // Menggunakan Cloudflare Workers AI Native Binding
+      try {
+        const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+        const { env } = getCloudflareContext() as { env: any };
+        
+        if (env && env.AI) {
+          const prompt = `Anda adalah asisten cerdas pengelola parkir. Saat ini parkir terisi ${pct}%. Status: ${urgency}. Tindakan: ${actions.join(", ")}. Berikan pesan notifikasi singkat (2 kalimat) untuk petugas parkir dalam bahasa Indonesia.`;
+          
+          const cfResponse = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+            messages: [{ role: "user", content: prompt }]
+          });
+          
+          if (cfResponse && cfResponse.response) {
+            ai_narrative = `[Cloudflare Native Fallback] ${cfResponse.response.trim()}`;
+          }
+        } else {
+          console.warn("Cloudflare env.AI binding not found in current context (e.g., local dev without wrangler).");
+        }
+      } catch (cfNativeErr) {
+        console.error("Cloudflare Native AI Error:", cfNativeErr);
+      }
+
       const fallbackData = {
         prediction_id: `fallback_${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -246,11 +274,11 @@ export async function GET(request: NextRequest) {
         recommendation: {
           urgency,
           actions,
-          status_flag: "Menggunakan fallback lokal (FastAPI Offline)",
+          status_flag: "Menggunakan fallback Cloudflare AI / Lokal",
           human_summary: summary,
         },
-        ai_narrative: `[Lokal Fallback] Tingkat hunian parkir saat ini terpantau ${pct}%. ${summary} Silakan lakukan penyesuaian operasional lapangan jika diperlukan.`,
-        source: "Local Rule-based Fallback (Modal Offline)"
+        ai_narrative,
+        source: "Cloudflare Fallback AI (Modal Offline)"
       };
 
       // Update cache
@@ -258,7 +286,9 @@ export async function GET(request: NextRequest) {
       cachedPayloadHash = payloadHash;
       lastFetchTime = now;
 
-      return NextResponse.json(fallbackData);
+      return NextResponse.json(fallbackData, {
+        headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" }
+      });
     }
   } catch (error: any) {
     console.error("Error in AI predict API route:", error);
