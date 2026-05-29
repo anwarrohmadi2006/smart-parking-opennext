@@ -35,7 +35,7 @@ tf_image = (
     image=tf_image,
     gpu="T4",
     secrets=[modal.Secret.from_dict({
-        "WANDB_API_KEY": "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",
+        "WANDB_API_KEY": "YOUR_WANDB_API_KEY_HERE",
         "TF_ENABLE_ONEDNN_OPTS": "0"
     })],
     timeout=7200  # 2 hours timeout

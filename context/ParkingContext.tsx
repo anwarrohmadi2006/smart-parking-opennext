@@ -227,7 +227,7 @@ export function ParkingProvider({ children }: { children: ReactNode }) {
       newSlots.forEach((s) => {
         slotsDict[s.id] = s;
       });
-      set(ref(rtdb, "slots"), slotsDict).catch((err) => 
+      set(ref(rtdb, "slots"), slotsDict).catch((err: any) => 
         console.error("Error syncing simulation slots to RTDB:", err)
       );
     }

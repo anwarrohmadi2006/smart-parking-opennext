@@ -14,7 +14,7 @@ import wandb
 import numpy as np
 
 # ── Config ───────────────────────────────────────────────────────────────────
-WANDB_API_KEY = "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"
+WANDB_API_KEY = "YOUR_WANDB_API_KEY_HERE"
 PROJECT_PATH  = "anwarrohmadi111-universitas-islam-negeri-raden-mas-said-/Final"
 OUTPUT_DIR    = "tensorboard_logs"
 

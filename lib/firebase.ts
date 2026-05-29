@@ -3,15 +3,14 @@ import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "@/lib/firebase-rtdb";
 
 const firebaseConfig = {
-  projectId: "ultra-optics-428313-h6",
-  appId: "1:75598703644:web:9fd773089c5c3e9ae3c3d9",
-  storageBucket: "ultra-optics-428313-h6.firebasestorage.app",
-  apiKey: "AIzaSyDm71ECAe6BBeEA-vGirguOMA6nkit2GeM",
-  authDomain: "ultra-optics-428313-h6.firebaseapp.com",
-  messagingSenderId: "75598703644",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   measurementId: "",
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
-    "https://ultra-optics-428313-h6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
