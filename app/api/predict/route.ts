@@ -208,6 +208,27 @@ export async function GET(request: NextRequest) {
       data.predicted_pct_10min = `${(pred_10 * 100).toFixed(1)}%`;
       data.predicted_pct_20min = `${(pred_20 * 100).toFixed(1)}%`;
       
+      // Override narasi dari Modal dengan Cloudflare LLaMA-3 (Hemat & Cepat)
+      try {
+        const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+        const { env } = getCloudflareContext() as { env: any };
+        
+        if (env && env.AI) {
+          const prompt = `Anda adalah asisten cerdas pengelola parkir. Saat ini tingkat okupansi diprediksi ${data.predicted_pct}. Status: ${data.recommendation?.urgency || 'NORMAL'}. Tindakan: ${(data.recommendation?.actions || []).join(", ")}. Berikan satu atau maksimal dua kalimat notifikasi arahan yang sangat praktis dan jelas untuk petugas parkir di lapangan dalam bahasa Indonesia yang tegas.`;
+          
+          const cfResponse = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+            messages: [{ role: "user", content: prompt }]
+          });
+          
+          if (cfResponse && cfResponse.response) {
+            // Tulis ulang ai_narrative yang tadinya dari Modal
+            data.ai_narrative = `[✨ Cloudflare Edge AI] ${cfResponse.response.trim()}`;
+          }
+        }
+      } catch (cfNativeErr) {
+        console.error("Cloudflare Native AI Override Error:", cfNativeErr);
+      }
+
       // Update cache
       cachedResponse = data;
       cachedPayloadHash = payloadHash;
