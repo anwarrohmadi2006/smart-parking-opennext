@@ -164,7 +164,7 @@ export default function DashboardPage() {
     const startTime = Date.now();
     try {
       console.groupCollapsed(
-        `%c🤖 [SmartPark AI] Memanggil API Cloud ML Inference (Modal.com)...`,
+        `%c [SmartPark AI] Memanggil API Cloud ML Inference (Modal.com)...`,
         "color: #3b82f6; font-weight: bold; padding: 2px 4px; background: #e0f2fe; border-radius: 4px;"
       );
       console.log("Endpoint Proxy:", window.location.origin + "/api/predict");
@@ -203,12 +203,12 @@ export default function DashboardPage() {
         
         if (data.source === "Modal.com Cloud ML") {
           console.log(
-            `%c✅ BERHASIL: Prediksi dihitung secara real-time oleh model Deep Learning (LSTM + Temporal Attention) di cloud Modal.com!`,
+            `%c BERHASIL: Prediksi dihitung secara real-time oleh model Deep Learning (LSTM + Temporal Attention) di cloud Modal.com!`,
             "color: #10b981; font-weight: bold; background: #ecfdf5; padding: 2px 4px; border-radius: 4px;"
           );
         } else {
           console.warn(
-            `%c⚠️ WARNING: Menggunakan Local Rule-based Fallback karena API Cloud offline atau lambat.`,
+            `%c️ WARNING: Menggunakan Local Rule-based Fallback karena API Cloud offline atau lambat.`,
             "color: #d97706; font-weight: bold; background: #fef3c7; padding: 2px 4px; border-radius: 4px;"
           );
         }
@@ -220,7 +220,7 @@ export default function DashboardPage() {
         console.groupEnd();
       }
     } catch (err) {
-      console.error("🤖 [SmartPark AI] Gagal memuat prediksi AI:", err);
+      console.error(" [SmartPark AI] Gagal memuat prediksi AI:", err);
       console.groupEnd();
     } finally {
       setLoadingAi(false);
@@ -246,7 +246,7 @@ export default function DashboardPage() {
 
       if (res.ok) {
         setFeedbackSubmitted(aiPrediction.prediction_id);
-        console.log(`🤖 [SmartPark AI] Feedback berhasil terkirim untuk Prediksi ID: ${aiPrediction.prediction_id}`);
+        console.log(` [SmartPark AI] Feedback berhasil terkirim untuk Prediksi ID: ${aiPrediction.prediction_id}`);
       } else {
         console.error("Gagal mengirimkan feedback");
       }
@@ -282,7 +282,7 @@ export default function DashboardPage() {
     } else {
       estimasiMasuk = Math.floor(Math.random() * 2); 
       estimasiKeluar = Math.floor(Math.random() * 4) + 2; 
-      statusPeringatan = '🔴 Peringatan: Kapasitas Kritis!';
+      statusPeringatan = ' Peringatan: Kapasitas Kritis!';
     }
     setPrediction({ masuk: estimasiMasuk, keluar: estimasiKeluar, status: statusPeringatan });
   }, [occupancyPercentage, currentWeather, currentTimestamp, speed, isPlaying, replayIndex]);
@@ -410,15 +410,15 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="h-screen bg-slate-50 font-sans flex flex-col md:flex-row overflow-hidden relative">
+    <main className="h-screen bg-wise-canvas-soft font-sans flex flex-col md:flex-row overflow-hidden relative">
       
       {/* ==================================================== 
           BAGIAN ADMIN (KIRI) - Nuansa Gelap (Deep Blue/Slate)
           ==================================================== */}
-      <section className="bg-slate-900 text-white w-full md:w-96 shrink-0 flex flex-col p-6 overflow-y-auto border-r border-slate-800 shadow-xl z-20">
+      <section className="bg-wise-ink text-wise-canvas w-full md:w-96 shrink-0 flex flex-col p-6 overflow-y-auto border-r border-wise-ink shadow-xl z-20">
         <h1 className="text-xl font-bold mb-1 tracking-tight">ParkSystem <span className="text-blue-400">Admin</span></h1>
         <div className="flex items-center justify-between mb-6">
-          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+          <p className="text-wise-mute text-xs font-semibold uppercase tracking-wider">
             Global Config
           </p>
         </div>
@@ -427,28 +427,28 @@ export default function DashboardPage() {
         <nav className="mb-6 space-y-2">
           <div 
             onClick={() => setActiveTab('dashboard')}
-            className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'dashboard' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
+            className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'dashboard' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-wise-mute hover:text-wise-canvas hover:bg-[#20221e]/50'}`}
           >
             Dashboard Overview
           </div>
           <div 
             onClick={() => setActiveTab('laporan')}
-            className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'laporan' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
+            className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'laporan' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-wise-mute hover:text-wise-canvas hover:bg-[#20221e]/50'}`}
           >
             Laporan &amp; Ekspor Data
           </div>
           <div 
             onClick={() => setActiveTab('petugas')}
-            className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'petugas' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}
+            className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'petugas' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-wise-mute hover:text-wise-canvas hover:bg-[#20221e]/50'}`}
           >
             Ngatur Petugas
           </div>
         </nav>
 
-        <div className="bg-slate-800/50 rounded-xl p-5 mb-6 border border-slate-700/50">
-          <h2 className="text-sm font-bold text-white mb-3">Configuration</h2>
+        <div className="bg-[#20221e]/50 rounded-[16px] p-5 mb-6 border border-slate-700/50">
+          <h2 className="text-sm font-bold text-wise-canvas mb-3">Configuration</h2>
           <div className="flex justify-between items-center mb-3">
-            <span className="text-sm text-slate-400">Rate / Hour</span>
+            <span className="text-sm text-wise-mute">Rate / Hour</span>
             <span className="font-mono text-sm font-bold text-blue-400">Rp {config.harga_per_jam.toLocaleString('id-ID')}</span>
           </div>
           <input 
@@ -466,31 +466,31 @@ export default function DashboardPage() {
 
 
 
-        <div className="bg-slate-800/50 rounded-xl p-5 flex-grow border border-slate-700/50 flex flex-col">
-          <h2 className="text-sm font-bold text-white mb-4 flex justify-between items-center">
+        <div className="bg-[#20221e]/50 rounded-[16px] p-5 flex-grow border border-slate-700/50 flex flex-col">
+          <h2 className="text-sm font-bold text-wise-canvas mb-4 flex justify-between items-center">
             <span>Active Vehicles</span>
-            <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">{activeVehicles.length}</span>
+            <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-wise-canvas-soft">{activeVehicles.length}</span>
           </h2>
           {activeVehicles.length === 0 ? (
-            <p className="text-xs font-medium text-slate-500 italic">No vehicles currently parked.</p>
+            <p className="text-xs font-medium text-wise-mute italic">No vehicles currently parked.</p>
           ) : (
             <ul className="space-y-3 overflow-y-auto pr-2">
               {activeVehicles.map((vehicle) => (
-                <li key={vehicle.ticketId} className={`bg-slate-900 p-3 rounded-lg border flex flex-col shadow-sm transition-colors ${selectedVehicle === vehicle.ticketId ? 'border-blue-500' : 'border-slate-700'}`}>
+                <li key={vehicle.ticketId} className={`bg-wise-ink p-3 rounded-[12px] border flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-colors ${selectedVehicle === vehicle.ticketId ? 'border-blue-500' : 'border-slate-700'}`}>
                   <div className="flex justify-between items-center mb-2">
                     <p className="text-xs font-bold text-slate-200">{vehicle.ticketId}</p>
-                    <span className="bg-blue-600 border border-blue-500 text-white px-2 py-1 space-x-1 rounded text-[10px] font-bold font-mono shadow-inner">
+                    <span className="bg-blue-600 border border-blue-500 text-wise-canvas px-2 py-1 space-x-1 rounded text-[10px] font-bold font-mono shadow-inner">
                       {vehicle.slotId}
                     </span>
                   </div>
                   <div className="flex justify-between items-end mt-1">
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] text-wise-mute">
                       In: {new Date(vehicle.checkInTime).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}
                     </p>
                     <button 
                       onClick={() => handleInitiateCheckout(vehicle.ticketId)}
                       disabled={selectedVehicle !== null}
-                      className="text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 active:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 active:text-wise-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Checkout
                     </button>
@@ -506,20 +506,20 @@ export default function DashboardPage() {
       {/* ==================================================== 
           BAGIAN USER (KANAN) - Nuansa Terang (Clean/White)
           ==================================================== */}
-      <section className="flex-1 bg-slate-50 flex flex-col overflow-y-auto w-full">
+      <section className="flex-1 bg-wise-canvas-soft flex flex-col overflow-y-auto w-full">
         
         {/* Banner Internet Lambat */}
         {isSlowInternet && (
           <div className="bg-amber-100 text-amber-800 text-xs sm:text-sm font-semibold px-4 py-2 flex items-center justify-center border-b border-amber-200">
-            <span className="mr-2">⚠️</span>
+            <span className="mr-2">️</span>
             Koneksi internet lambat. Menampilkan data terakhir pada {lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('id-ID') : '--:--'}. Sedang mencoba menyinkronkan ulang...
           </div>
         )}
 
-        <header className="h-20 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between shrink-0">
+        <header className="h-20 bg-wise-canvas border-b border-wise-canvas-soft px-6 sm:px-8 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4 sm:gap-8">
              <div>
-               <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-800">
+               <h1 className="text-lg sm:text-xl font-bold tracking-tight text-wise-ink">
                  {activeTab === 'dashboard' && 'Dashboard Overview'}
                  {activeTab === 'laporan' && 'Laporan & Ekspor Data'}
                  {activeTab === 'petugas' && 'Manajemen Petugas'}
@@ -530,10 +530,10 @@ export default function DashboardPage() {
              {/* Tombol Akses Masuk Manual */}
              <button
                onClick={() => setIsManualClose(!isManualClose)}
-               className={`hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm active:scale-95 uppercase tracking-wider ${
+               className={`hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-[12px] text-xs font-bold transition-colors shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 uppercase tracking-wider ${
                  isManualClose 
                    ? 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
-                   : 'bg-rose-600 text-white border border-rose-700 hover:bg-rose-700'
+                   : 'bg-rose-600 text-wise-canvas border border-rose-700 hover:bg-rose-700'
                }`}
              >
                {isManualClose ? 'BUKA AKSES MASUK (NORMAL)' : 'TUTUP AKSES MASUK MANUAL'}
@@ -549,7 +549,7 @@ export default function DashboardPage() {
             <button 
               onClick={simulateCheckIn}
               disabled={isManualClose || availableSlots === 0}
-              className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-wise-ink text-wise-canvas rounded-[12px] text-sm font-medium hover:bg-[#20221e] transition-colors shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               + Check-in Vehicle
             </button>
@@ -561,7 +561,7 @@ export default function DashboardPage() {
           {activeTab === 'dashboard' && (
             <>
               {/* PANEL SIMULASI CONTROL ROOM (Premium Glassmorphism Design) */}
-              <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-6 shadow-2xl text-slate-100 mb-6 relative overflow-hidden">
+              <div className="bg-wise-ink/90 backdrop-blur-md border border-slate-700/80 rounded-[24px] p-6 shadow-2xl text-slate-100 mb-6 relative overflow-hidden">
                 {/* Background ambient light */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -578,10 +578,10 @@ export default function DashboardPage() {
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
                           </>
                         ) : (
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-wise-canvas-soft0"></span>
                         )}
                       </span>
-                      <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                      <h2 className="text-lg font-bold tracking-tight text-wise-canvas flex items-center gap-2">
                         9-Day Replay Control Room
                         {speed === "off" ? (
                           <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-widest">
@@ -594,7 +594,7 @@ export default function DashboardPage() {
                         )}
                       </h2>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-wise-mute mt-1">
                       {speed === "off" 
                         ? "Menampilkan data okupansi real-time yang aktif dari database Firestore."
                         : `Menjalankan simulasi data parkir 9 hari berturut-turut berdasarkan dataset CNRParkEXT (164 slot).`}
@@ -609,7 +609,7 @@ export default function DashboardPage() {
                           setSpeed("off");
                           setInjectedScenario(null);
                         }}
-                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-slate-700/80 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                        className="px-3 py-1.5 bg-[#20221e] hover:bg-slate-700 text-wise-canvas-soft text-xs font-bold rounded-[12px] border border-slate-700/80 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                       >
                         Kembali ke Live Mode
                       </button>
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Media Controls & Speed Selection */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center bg-slate-950/40 border border-slate-800/50 p-4 rounded-xl mb-6 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center bg-slate-950/40 border border-wise-ink/50 p-4 rounded-[16px] mb-6 relative z-10">
                   {/* Part 1: Media Player Buttons */}
                   <div className="flex items-center justify-center lg:justify-start gap-3">
                     <button
@@ -626,7 +626,7 @@ export default function DashboardPage() {
                         if (speed === "off") setSpeed("150x");
                         setReplayIndex((prev) => (prev > 0 ? prev - 1 : 927));
                       }}
-                      className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 transition-all hover:scale-105 active:scale-95"
+                      className="p-2.5 bg-[#20221e] hover:bg-slate-700 text-wise-canvas rounded-[12px] border border-slate-700 transition-all hover:scale-105 active:scale-95"
                       title="Step Backward (Prev 10 Min)"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.8V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"/></svg>
@@ -639,10 +639,10 @@ export default function DashboardPage() {
                         }
                         setIsPlaying(!isPlaying);
                       }}
-                      className={`p-3 rounded-lg border transition-all hover:scale-105 active:scale-95 ${
+                      className={`p-3 rounded-[12px] border transition-all hover:scale-105 active:scale-95 ${
                         isPlaying 
                           ? 'bg-amber-500 hover:bg-amber-400 text-amber-950 border-amber-600' 
-                          : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-700'
+                          : 'bg-blue-600 hover:bg-blue-500 text-wise-canvas border-blue-700'
                       }`}
                       title={isPlaying ? "Pause Simulation" : "Play Simulation"}
                     >
@@ -658,7 +658,7 @@ export default function DashboardPage() {
                         if (speed === "off") setSpeed("150x");
                         setReplayIndex((prev) => (prev + 1) % 928);
                       }}
-                      className="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg border border-slate-700 transition-all hover:scale-105 active:scale-95"
+                      className="p-2.5 bg-[#20221e] hover:bg-slate-700 text-wise-canvas rounded-[12px] border border-slate-700 transition-all hover:scale-105 active:scale-95"
                       title="Step Forward (Next 10 Min)"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798L4.555 5.168z"/></svg>
@@ -667,7 +667,7 @@ export default function DashboardPage() {
 
                   {/* Part 2: Speed Warp Slider */}
                   <div className="flex flex-col gap-1.5 w-full">
-                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between text-[10px] font-bold text-wise-mute uppercase tracking-wider">
                       <span>Kecepatan Replay</span>
                       <span className="text-amber-400 font-mono">{speed === "off" ? "Off (Live)" : speed}</span>
                     </div>
@@ -696,10 +696,10 @@ export default function DashboardPage() {
                             setIsPlaying(true);
                           }
                         }}
-                        className="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg appearance-none"
+                        className="w-full accent-blue-500 cursor-pointer h-1.5 bg-[#20221e] rounded-[12px] appearance-none"
                       />
                     </div>
-                    <div className="flex justify-between text-[8px] text-slate-500 font-mono">
+                    <div className="flex justify-between text-[8px] text-wise-mute font-mono">
                       <span>OFF</span>
                       <span>1x</span>
                       <span>60x</span>
@@ -719,10 +719,10 @@ export default function DashboardPage() {
                           ? 'bg-blue-950 text-blue-400 border border-blue-800/40' 
                           : 'bg-amber-950 text-amber-400 border border-amber-800/40'
                       }`}>
-                        {currentWeather === 'RAINY' ? '🌧️ HUJAN LEBAT' : '☀️ CERAH'}
+                        {currentWeather === 'RAINY' ? '️ HUJAN LEBAT' : '️ CERAH'}
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-mono text-center lg:text-right mt-1">
+                    <div className="text-[10px] text-wise-mute font-mono text-center lg:text-right mt-1">
                       Hari virtual ke-{(Math.floor(replayIndex / 108) + 1)} / 9
                     </div>
                   </div>
@@ -734,7 +734,7 @@ export default function DashboardPage() {
                     <span className="text-blue-400 font-mono">
                       {formatVirtualDate(currentTimestamp)}
                     </span>
-                    <span className="text-slate-400 font-mono">
+                    <span className="text-wise-mute font-mono">
                       Frame {replayIndex + 1} / 928
                     </span>
                   </div>
@@ -747,9 +747,9 @@ export default function DashboardPage() {
                       if (speed === "off") setSpeed("150x"); // enter simulation mode
                       setReplayIndex(parseInt(e.target.value));
                     }}
-                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-2 bg-[#20221e] rounded-[12px] appearance-none cursor-pointer accent-blue-500"
                   />
-                  <div className="flex justify-between text-[9px] text-slate-500 font-mono">
+                  <div className="flex justify-between text-[9px] text-wise-mute font-mono">
                     <span>16 Nov (Awal)</span>
                     <span>Weekend 1</span>
                     <span>20 Nov (Tengah)</span>
@@ -759,8 +759,8 @@ export default function DashboardPage() {
                 </div>
 
                 {/* "What-If" Scenario Injectors */}
-                <div className="bg-slate-950/60 border border-slate-800/80 p-4 rounded-xl relative z-10">
-                  <div className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <div className="bg-slate-950/60 border border-wise-ink/80 p-4 rounded-[16px] relative z-10">
+                  <div className="text-xs font-bold text-wise-canvas-soft uppercase tracking-widest mb-3 flex items-center gap-1.5">
                     <svg className="w-3.5 h-3.5 text-blue-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     "What-If" Scenario Injector (Simulator)
                   </div>
@@ -771,24 +771,24 @@ export default function DashboardPage() {
                         if (speed === "off") setSpeed("150x");
                         setInjectedScenario({ type: "weather", value: "RAINY" });
                       }}
-                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                      className={`px-3 py-2 rounded-[12px] text-xs font-semibold border transition-all ${
                         injectedScenario?.type === "weather" && injectedScenario.value === "RAINY"
-                          ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
-                          : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                          ? "bg-blue-600 border-blue-500 text-wise-canvas shadow-lg shadow-blue-500/20"
+                          : "bg-wise-ink text-wise-canvas-soft border-wise-ink hover:bg-[#20221e]"
                       }`}
                     >
-                      🌧️ Suntik Hujan Lebat
+                      ️ Suntik Hujan Lebat
                     </button>
 
                     <button
                       onClick={injectEmergencyOccupancy}
-                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                      className={`px-3 py-2 rounded-[12px] text-xs font-semibold border transition-all ${
                         injectedScenario?.type === "occupancy"
-                          ? "bg-red-600 border-red-500 text-white shadow-lg shadow-red-500/20"
-                          : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                          ? "bg-red-600 border-red-500 text-wise-canvas shadow-lg shadow-red-500/20"
+                          : "bg-wise-ink text-wise-canvas-soft border-wise-ink hover:bg-[#20221e]"
                       }`}
                     >
-                      🚨 Suntik Kendaraan Darurat (+30 Slot)
+                       Suntik Kendaraan Darurat (+30 Slot)
                     </button>
 
                     <button
@@ -796,19 +796,19 @@ export default function DashboardPage() {
                         if (speed === "off") setSpeed("150x");
                         setInjectedScenario({ type: "camera_offline", value: ["02", "05", "08"] });
                       }}
-                      className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-all ${
+                      className={`px-3 py-2 rounded-[12px] text-xs font-semibold border transition-all ${
                         injectedScenario?.type === "camera_offline"
-                          ? "bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20"
-                          : "bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800"
+                          ? "bg-amber-600 border-amber-500 text-wise-canvas shadow-lg shadow-amber-500/20"
+                          : "bg-wise-ink text-wise-canvas-soft border-wise-ink hover:bg-[#20221e]"
                       }`}
                     >
-                      ⚠️ Simulasikan Kamera [02, 05, 08] Mati
+                      ️ Simulasikan Kamera [02, 05, 08] Mati
                     </button>
 
                     {injectedScenario && (
                       <button
                         onClick={() => setInjectedScenario(null)}
-                        className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold rounded-lg border border-slate-700 transition-colors"
+                        className="px-3 py-2 bg-[#20221e] hover:bg-slate-700 text-wise-mute text-xs font-semibold rounded-[12px] border border-slate-700 transition-colors"
                       >
                         Reset Skenario
                       </button>
@@ -819,19 +819,19 @@ export default function DashboardPage() {
               {/* PREDIKSI & OKUPANSI */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Card 1: Okupansi Saat Ini */}
-                <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col justify-between min-h-[220px]">
+                <div className="bg-wise-ink text-wise-canvas p-6 rounded-[24px] shadow-lg border border-wise-ink flex flex-col justify-between min-h-[220px]">
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-xl font-bold tracking-tight">Status Okupansi Saat Ini</h2>
-                      <span className="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700 font-mono">Real-time</span>
+                      <span className="text-xs bg-[#20221e] text-wise-mute px-3 py-1 rounded-full border border-slate-700 font-mono">Real-time</span>
                     </div>
                     <div className="flex items-baseline gap-2 mb-2">
                       <span className="text-5xl font-black font-mono text-blue-400">{occupancyPercentage}%</span>
-                      <span className="text-slate-500 text-sm">keterisian lahan</span>
+                      <span className="text-wise-mute text-sm">keterisian lahan</span>
                     </div>
-                    <p className="text-xs text-slate-400 mb-6 font-medium">Terisi: {occupiedSlots} slot | Tersedia: {availableSlots} slot</p>
+                    <p className="text-xs text-wise-mute mb-6 font-medium">Terisi: {occupiedSlots} slot | Tersedia: {availableSlots} slot</p>
                   </div>
-                  <div className="w-full bg-slate-800 h-4 rounded-full mb-2 relative overflow-hidden shadow-inner">
+                  <div className="w-full bg-[#20221e] h-4 rounded-full mb-2 relative overflow-hidden shadow-inner">
                     <div 
                       className={`h-4 rounded-full transition-all duration-500 ${occupancyPercentage > 85 ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`} 
                       style={{ width: `${occupancyPercentage}%` }}
@@ -840,20 +840,20 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Card 2: AI Asisten Cerdas (Model CLSTAN) */}
-                <div className="bg-slate-950 text-white p-6 rounded-2xl shadow-xl border border-blue-500/20 relative overflow-hidden min-h-[220px] flex flex-col justify-between">
+                <div className="bg-slate-950 text-wise-canvas p-6 rounded-[24px] shadow-xl border border-blue-500/20 relative overflow-hidden min-h-[220px] flex flex-col justify-between">
                   {/* Background glowing aura */}
                   <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-600/10 rounded-full blur-2xl"></div>
                   
                   <div>
                     <div className="flex justify-between items-center mb-4 relative z-10">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-600/20 border border-blue-500/30 rounded-lg flex items-center justify-center animate-pulse">
+                        <div className="w-8 h-8 bg-blue-600/20 border border-blue-500/30 rounded-[12px] flex items-center justify-center animate-pulse">
                           <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                         </div>
                         <h2 className="text-md font-bold tracking-wider text-slate-100 uppercase">SmartPark AI Assistant</h2>
                       </div>
                       {loadingAi ? (
-                        <span className="text-[10px] bg-slate-800 text-blue-400 px-2 py-0.5 rounded font-mono animate-pulse">Analyzing...</span>
+                        <span className="text-[10px] bg-[#20221e] text-blue-400 px-2 py-0.5 rounded font-mono animate-pulse">Analyzing...</span>
                       ) : aiPrediction?.source ? (
                         <span className="text-[10px] bg-blue-950/80 text-blue-400 border border-blue-800/50 px-2.5 py-0.5 rounded font-mono flex items-center gap-1.5" title={`Sumber: ${aiPrediction.source}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${aiPrediction.source.includes("Cloud") ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse"}`}></span>
@@ -866,13 +866,13 @@ export default function DashboardPage() {
 
                     {aiPrediction ? (
                       <div className="space-y-4 relative z-10">
-                        <div className="flex justify-between items-center bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                        <div className="flex justify-between items-center bg-wise-ink/60 p-3 rounded-[16px] border border-wise-ink/80">
                           <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Prediksi Okupansi (30 Menit)</p>
+                            <p className="text-[10px] font-bold text-wise-mute uppercase tracking-widest mb-0.5">Prediksi Okupansi (30 Menit)</p>
                             <div className="flex items-center gap-2">
                               <p className="text-3xl font-black font-mono text-emerald-400 tracking-tight">{aiPrediction.predicted_pct}</p>
                               {getActualFutureOccupancy(30) !== null && (
-                                <span className="text-[10px] text-slate-300 font-bold whitespace-nowrap bg-blue-950/80 border border-blue-800/40 px-2.5 py-1 rounded-lg">
+                                <span className="text-[10px] text-wise-canvas-soft font-bold whitespace-nowrap bg-blue-950/80 border border-blue-800/40 px-2.5 py-1 rounded-[12px]">
                                   Aktual: <span className="text-blue-400 font-black">{getActualFutureOccupancy(30)}</span>
                                 </span>
                               )}
@@ -882,15 +882,15 @@ export default function DashboardPage() {
                                     ? 'bg-rose-950/80 text-rose-400 border-rose-800/30' 
                                     : aiPrediction.change_rate_per_interval < -0.005 
                                     ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/30' 
-                                    : 'bg-slate-800/80 text-slate-400 border-slate-700/30'
+                                    : 'bg-[#20221e]/80 text-wise-mute border-slate-700/30'
                                 }`} title={`Laju perubahan: ${aiPrediction.change_rate_per_interval.toFixed(4)}`}>
-                                  {aiPrediction.change_rate_per_interval > 0.005 ? "↗️ Mengisi" : aiPrediction.change_rate_per_interval < -0.005 ? "↘️ Sepi" : "➡️ Stabil"}
+                                  {aiPrediction.change_rate_per_interval > 0.005 ? "️ Mengisi" : aiPrediction.change_rate_per_interval < -0.005 ? "️ Sepi" : "️ Stabil"}
                                 </span>
                               )}
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Model Confidence</p>
+                            <p className="text-[10px] font-bold text-wise-mute uppercase tracking-widest mb-1">Model Confidence</p>
                             <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
                               aiPrediction.confidence.confidence_level === "TINGGI" 
                                 ? 'bg-emerald-950 text-emerald-400 border-emerald-800/30' 
@@ -902,27 +902,27 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Timeline Prediksi 10m | 20m | 30m */}
-                        <div className="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/60 text-xs">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Estimasi Alur Okupansi (Timeline)</p>
+                        <div className="bg-wise-ink/40 p-3.5 rounded-[16px] border border-wise-ink/60 text-xs">
+                          <p className="text-[10px] font-bold text-wise-mute uppercase tracking-widest mb-3">Estimasi Alur Okupansi (Timeline)</p>
                           <div className="relative flex items-center justify-between mt-2 px-2">
                             {/* Horizontal Line under the points */}
-                            <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-[2px] bg-slate-800 z-0"></div>
+                            <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-[2px] bg-[#20221e] z-0"></div>
                             
                             {/* Node 1: Current */}
                             <div className="flex flex-col items-center relative z-10">
                               <span className="w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-slate-950 flex items-center justify-center"></span>
-                              <span className="text-[9px] text-slate-400 font-medium mt-1">Saat Ini</span>
+                              <span className="text-[9px] text-wise-mute font-medium mt-1">Saat Ini</span>
                               <span className="text-[11px] font-bold text-slate-200 font-mono mt-0.5">{occupancyPercentage}%</span>
                             </div>
 
                             {/* Node 2: 10 Min */}
                             <div className="flex flex-col items-center relative z-10">
                               <span className="w-3.5 h-3.5 rounded-full bg-blue-400 border-2 border-slate-950 flex items-center justify-center"></span>
-                              <span className="text-[9px] text-slate-400 font-medium mt-1">+10 Mins</span>
+                              <span className="text-[9px] text-wise-mute font-medium mt-1">+10 Mins</span>
                               <span className="text-[11px] font-bold text-blue-300 font-mono mt-0.5">{aiPrediction.predicted_pct_10min || `${occupancyPercentage}%`}</span>
                               {getActualFutureOccupancy(10) !== null && (
-                                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
-                                  Aktual: <span className="text-slate-300 font-semibold">{getActualFutureOccupancy(10)}</span>
+                                <span className="text-[9px] text-wise-mute font-mono mt-0.5">
+                                  Aktual: <span className="text-wise-canvas-soft font-semibold">{getActualFutureOccupancy(10)}</span>
                                 </span>
                               )}
                             </div>
@@ -930,11 +930,11 @@ export default function DashboardPage() {
                             {/* Node 3: 20 Min */}
                             <div className="flex flex-col items-center relative z-10">
                               <span className="w-3.5 h-3.5 rounded-full bg-indigo-400 border-2 border-slate-950 flex items-center justify-center"></span>
-                              <span className="text-[9px] text-slate-400 font-medium mt-1">+20 Mins</span>
+                              <span className="text-[9px] text-wise-mute font-medium mt-1">+20 Mins</span>
                               <span className="text-[11px] font-bold text-indigo-300 font-mono mt-0.5">{aiPrediction.predicted_pct_20min || `${occupancyPercentage}%`}</span>
                               {getActualFutureOccupancy(20) !== null && (
-                                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
-                                  Aktual: <span className="text-slate-300 font-semibold">{getActualFutureOccupancy(20)}</span>
+                                <span className="text-[9px] text-wise-mute font-mono mt-0.5">
+                                  Aktual: <span className="text-wise-canvas-soft font-semibold">{getActualFutureOccupancy(20)}</span>
                                 </span>
                               )}
                             </div>
@@ -945,22 +945,22 @@ export default function DashboardPage() {
                               <span className="text-[9px] text-emerald-400 font-semibold mt-1" title="Dihitung oleh model CLSTAN">+30 Mins*</span>
                               <span className="text-[11px] font-bold text-emerald-400 font-mono mt-0.5">{aiPrediction.predicted_pct}</span>
                               {getActualFutureOccupancy(30) !== null && (
-                                <span className="text-[9px] text-slate-500 font-mono mt-0.5">
+                                <span className="text-[9px] text-wise-mute font-mono mt-0.5">
                                   Aktual: <span className="text-emerald-400 font-bold">{getActualFutureOccupancy(30)}</span>
                                 </span>
                               )}
                             </div>
                           </div>
-                          <p className="text-[8px] text-slate-500 italic mt-3 text-right">
+                          <p className="text-[8px] text-wise-mute italic mt-3 text-right">
                             *Prediksi 30m dihitung oleh model CLSTAN, sedangkan 10m &amp; 20m diinterpolasikan linier.
                           </p>
                         </div>
 
                         {/* Grafik Realtime Perbandingan Aktual vs Prediksi */}
                         {speed !== "off" && getActualFutureOccupancy(30) !== null && (
-                          <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                          <div className="bg-wise-ink/60 p-3 rounded-[16px] border border-wise-ink/80">
                             <div className="flex justify-between items-center mb-2 px-1">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Visualisasi Perbandingan Aktual vs Prediksi</p>
+                              <p className="text-[10px] font-bold text-wise-mute uppercase tracking-widest">Visualisasi Perbandingan Aktual vs Prediksi</p>
                               <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider">
                                 <div className="flex items-center gap-1.5">
                                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -973,7 +973,7 @@ export default function DashboardPage() {
                               </div>
                             </div>
 
-                            <div className="relative w-full h-[150px] bg-slate-950/50 rounded-lg overflow-hidden border border-slate-900/80">
+                            <div className="relative w-full h-[150px] bg-slate-950/50 rounded-[12px] overflow-hidden border border-slate-900/80">
                               {/* Grid lines */}
                               <svg className="w-full h-full animate-fade-in" viewBox="0 0 500 150" preserveAspectRatio="none">
                                 <defs>
@@ -1057,34 +1057,34 @@ export default function DashboardPage() {
                         )}
 
                         {/* AI Narrative Bubble (Gemini) */}
-                        <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/60 text-xs text-slate-300 leading-relaxed italic relative">
+                        <div className="bg-wise-ink/40 p-4 rounded-[16px] border border-wise-ink/60 text-xs text-wise-canvas-soft leading-relaxed italic relative">
                           <span className="absolute -top-2.5 left-4 bg-slate-950 px-2 text-[9px] font-bold text-blue-400 uppercase tracking-wider">Gemini AI Insight</span>
                           "{aiPrediction.ai_narrative}"
                         </div>
 
                         {/* AI Validation Feedback Panel */}
-                        <div className="flex items-center justify-between bg-slate-900/30 p-3 rounded-xl border border-slate-800/50 animate-fade-in">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apakah Prediksi AI Akurat?</span>
+                        <div className="flex items-center justify-between bg-wise-ink/30 p-3 rounded-[16px] border border-wise-ink/50 animate-fade-in">
+                          <span className="text-[10px] font-bold text-wise-mute uppercase tracking-widest">Apakah Prediksi AI Akurat?</span>
                           
                           {feedbackSubmitted === aiPrediction.prediction_id ? (
                             <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 animate-pulse">
-                              Feedback Dikirim! Terima Kasih ✅
+                              Feedback Dikirim! Terima Kasih 
                             </span>
                           ) : (
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleFeedback(true)}
                                 disabled={submittingFeedback}
-                                className="px-3 py-1 bg-emerald-950 hover:bg-emerald-900/80 text-emerald-400 border border-emerald-800/40 text-[10px] font-bold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                                className="px-3 py-1 bg-emerald-950 hover:bg-emerald-900/80 text-emerald-400 border border-emerald-800/40 text-[10px] font-bold rounded-[12px] transition-all active:scale-95 disabled:opacity-50"
                               >
-                                {submittingFeedback ? "..." : "👍 Akurat"}
+                                {submittingFeedback ? "..." : " Akurat"}
                               </button>
                               <button
                                 onClick={() => handleFeedback(false)}
                                 disabled={submittingFeedback}
-                                className="px-3 py-1 bg-rose-950 hover:bg-rose-900/80 text-rose-400 border border-rose-800/40 text-[10px] font-bold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                                className="px-3 py-1 bg-rose-950 hover:bg-rose-900/80 text-rose-400 border border-rose-800/40 text-[10px] font-bold rounded-[12px] transition-all active:scale-95 disabled:opacity-50"
                               >
-                                {submittingFeedback ? "..." : "👎 Salah"}
+                                {submittingFeedback ? "..." : " Salah"}
                               </button>
                             </div>
                           )}
@@ -1092,10 +1092,10 @@ export default function DashboardPage() {
 
                         {/* Recommended Actions */}
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Rekomendasi Tindakan Admin</p>
+                          <p className="text-[10px] font-bold text-wise-mute uppercase tracking-widest mb-2">Rekomendasi Tindakan Admin</p>
                           <ul className="space-y-1.5 text-xs text-slate-200">
                             {aiPrediction.recommendation.actions.map((act, index) => (
-                              <li key={index} className="flex items-start gap-2 bg-slate-900/30 p-2 rounded-lg border border-slate-900/50 hover:bg-slate-900/50 transition-colors">
+                              <li key={index} className="flex items-start gap-2 bg-wise-ink/30 p-2 rounded-[12px] border border-slate-900/50 hover:bg-wise-ink/50 transition-colors">
                                 <input type="checkbox" className="mt-0.5 accent-blue-500 rounded cursor-pointer" />
                                 <span className="font-medium">{act}</span>
                               </li>
@@ -1104,7 +1104,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="py-12 text-center text-xs text-slate-500 italic">
+                      <div className="py-12 text-center text-xs text-wise-mute italic">
                         Memuat prediksi AI...
                       </div>
                     )}
@@ -1114,45 +1114,45 @@ export default function DashboardPage() {
 
               {/* STATS AREA */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start">
-                  <p className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Total Capacity</p>
-                  <p className="text-2xl font-bold text-slate-800">{slots.length} <span className="text-sm text-slate-400 font-normal">Slots</span></p>
+                <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft flex flex-col items-start">
+                  <p className="text-xs uppercase tracking-wider text-wise-mute font-bold mb-1">Total Capacity</p>
+                  <p className="text-2xl font-bold text-wise-ink">{slots.length} <span className="text-sm text-wise-mute font-normal">Slots</span></p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start relative overflow-hidden">
+                <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft flex flex-col items-start relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-2 h-full bg-blue-500"></div>
-                  <p className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Occupied</p>
-                  <p className="text-2xl font-bold text-slate-800">{occupiedSlots}</p>
+                  <p className="text-xs uppercase tracking-wider text-wise-mute font-bold mb-1">Occupied</p>
+                  <p className="text-2xl font-bold text-wise-ink">{occupiedSlots}</p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start">
-                  <p className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Available</p>
-                  <p className="text-2xl font-bold text-slate-800">{availableSlots}</p>
+                <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft flex flex-col items-start">
+                  <p className="text-xs uppercase tracking-wider text-wise-mute font-bold mb-1">Available</p>
+                  <p className="text-2xl font-bold text-wise-ink">{availableSlots}</p>
                 </div>
               </div>
 
               {/* GRID AREA */}
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1">
-                <div className="flex flex-col gap-4 mb-6 border-b border-slate-100 pb-4">
+              <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft flex-1">
+                <div className="flex flex-col gap-4 mb-6 border-b border-wise-canvas-soft pb-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="font-bold text-slate-800">Parking Map (Control Room View)</h3>
-                      <p className="text-xs text-slate-400 italic">Saring tampilan slot berdasarkan camera feed atau tampilkan semua</p>
+                      <h3 className="font-bold text-wise-ink">Parking Map (Control Room View)</h3>
+                      <p className="text-xs text-wise-mute italic">Saring tampilan slot berdasarkan camera feed atau tampilkan semua</p>
                     </div>
                     <div className="flex gap-4 text-[10px] font-bold">
-                      <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-slate-50 border border-slate-200 rounded"></span> EMPTY</div>
+                      <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-wise-canvas-soft border border-wise-canvas-soft rounded"></span> EMPTY</div>
                       <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-blue-500 border border-blue-600 rounded"></span> OCCUPIED</div>
                     </div>
                   </div>
                   
                   {/* Camera Tabs */}
-                  <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200/60">
+                  <div className="flex flex-wrap gap-1.5 bg-wise-canvas-soft p-1.5 rounded-[16px] border border-wise-canvas-soft/60">
                     {['semua', '01', '02', '03', '04', '05', '06', '07', '08', '09'].map((cam) => (
                       <button
                         key={cam}
                         onClick={() => setActiveCamera(cam)}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-[12px] transition-all ${
                           activeCamera === cam
-                            ? 'bg-slate-900 text-white shadow-sm shadow-slate-900/10'
-                            : 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/50'
+                            ? 'bg-wise-ink text-wise-canvas shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-900/10'
+                            : 'text-wise-body hover:text-slate-950 hover:bg-slate-200/50'
                         }`}
                       >
                         {cam === 'semua' ? `Semua (${slots.length} Slot)` : `Cam ${cam}`}
@@ -1188,11 +1188,11 @@ export default function DashboardPage() {
                     }
 
                     const bgClass = isEmpty 
-                      ? (isStale ? 'bg-amber-50 border border-amber-300 border-dashed' : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300')
-                      : (isStale ? 'bg-amber-500 border border-amber-600 shadow-sm' : 'bg-blue-500 border border-blue-600 shadow-sm');
+                      ? (isStale ? 'bg-amber-50 border border-amber-300 border-dashed' : 'bg-wise-canvas-soft border border-wise-canvas-soft hover:bg-slate-100 hover:border-slate-300')
+                      : (isStale ? 'bg-amber-500 border border-amber-600 shadow-[0_8px_30px_rgb(0,0,0,0.04)]' : 'bg-blue-500 border border-blue-600 shadow-[0_8px_30px_rgb(0,0,0,0.04)]');
                       
                     const textClass = isEmpty
-                      ? (isStale ? 'text-amber-600' : 'text-slate-400')
+                      ? (isStale ? 'text-amber-600' : 'text-wise-mute')
                       : (isStale ? 'text-amber-50' : 'text-blue-100');
 
                     return (
@@ -1200,13 +1200,13 @@ export default function DashboardPage() {
                         key={slot.id} 
                         title={isStale ? `Kamera Terputus! Data terakhir: ${slot.lastUpdated}` : `Slot ${slot.id}`}
                         className={`
-                          relative p-3 rounded-lg flex flex-col items-center justify-center transition-all duration-200
+                          relative p-3 rounded-[12px] flex flex-col items-center justify-center transition-all duration-200
                           ${bgClass}
                         `}
                       >
                         {isStale && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold shadow-md" title="Data Basi / Kamera Mati">
-                            ⚠️
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-wise-canvas rounded-full flex items-center justify-center text-[8px] font-bold shadow-md" title="Data Basi / Kamera Mati">
+                            ️
                           </div>
                         )}
                         <span className={`text-[10px] font-bold ${textClass}`}>
@@ -1214,7 +1214,7 @@ export default function DashboardPage() {
                         </span>
                         <span 
                           className={`text-[9px] uppercase tracking-wider mt-1 font-semibold ${
-                            isEmpty ? (isStale ? 'text-amber-500' : 'text-slate-300') : 'text-white opacity-90'
+                            isEmpty ? (isStale ? 'text-amber-500' : 'text-wise-canvas-soft') : 'text-wise-canvas opacity-90'
                           }`}
                         >
                           {isEmpty ? 'Empty' : 'Parked'}
@@ -1228,15 +1228,15 @@ export default function DashboardPage() {
           )}
 
           {activeTab === 'laporan' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1">
+            <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft flex-1">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Laporan Transaksi Parkir</h2>
-                  <p className="text-sm text-slate-500">Tinjau log aktivitas kendaraan yang keluar-masuk sistem.</p>
+                  <h2 className="text-xl font-bold text-wise-ink">Laporan Transaksi Parkir</h2>
+                  <p className="text-sm text-wise-mute">Tinjau log aktivitas kendaraan yang keluar-masuk sistem.</p>
                 </div>
                 <button 
                   onClick={handleExportCSV} 
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-wise-canvas px-5 py-2.5 rounded-[16px] font-semibold shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all active:scale-95 flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                   Unduh CSV
@@ -1244,24 +1244,24 @@ export default function DashboardPage() {
               </div>
 
               {logs.length === 0 ? (
-                <div className="text-center py-12 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
-                  <p className="text-slate-500 font-medium">Belum ada data transaksi.</p>
+                <div className="text-center py-12 bg-wise-canvas-soft rounded-[16px] border border-wise-canvas-soft border-dashed">
+                  <p className="text-wise-mute font-medium">Belum ada data transaksi.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200">
-                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Log ID / Waktu</th>
-                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipe Aktivitas</th>
+                      <tr className="bg-wise-canvas-soft border-b border-wise-canvas-soft">
+                        <th className="p-4 text-xs font-bold text-wise-mute uppercase tracking-wider">Log ID / Waktu</th>
+                        <th className="p-4 text-xs font-bold text-wise-mute uppercase tracking-wider">Tipe Aktivitas</th>
                       </tr>
                     </thead>
                     <tbody>
                       {logs.slice().reverse().map(log => (
-                        <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                        <tr key={log.id} className="border-b border-wise-canvas-soft hover:bg-wise-canvas-soft/50">
                           <td className="p-4">
-                            <p className="text-sm font-semibold text-slate-800">{new Date(log.timestamp).toLocaleString('id-ID')}</p>
-                            <p className="text-xs text-slate-400 font-mono mt-0.5">{log.id}</p>
+                            <p className="text-sm font-semibold text-wise-ink">{new Date(log.timestamp).toLocaleString('id-ID')}</p>
+                            <p className="text-xs text-wise-mute font-mono mt-0.5">{log.id}</p>
                           </td>
                           <td className="p-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -1283,26 +1283,26 @@ export default function DashboardPage() {
 
           {activeTab === 'petugas' && (
             <div className="grid gap-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <h2 className="text-xl font-bold text-slate-800 mb-2">Ngatur Petugas</h2>
-                <p className="text-sm text-slate-500 mb-6">Kelola status shift petugas parkir saat ini.</p>
+              <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft">
+                <h2 className="text-xl font-bold text-wise-ink mb-2">Ngatur Petugas</h2>
+                <p className="text-sm text-wise-mute mb-6">Kelola status shift petugas parkir saat ini.</p>
                 
                 <div className="grid gap-4">
                   {petugas.map(p => (
-                    <div key={p.id} className="flex justify-between items-center bg-slate-50 p-5 rounded-xl border border-slate-200 transition-all hover:border-blue-200 hover:shadow-sm">
+                    <div key={p.id} className="flex justify-between items-center bg-wise-canvas-soft p-5 rounded-[16px] border border-wise-canvas-soft transition-all hover:border-blue-200 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                       <div className="flex items-center gap-4">
                         <div className={`w-3 h-3 rounded-full ${p.status !== 'Offline' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-slate-300'}`}></div>
                         <div>
-                          <p className="font-bold text-slate-800 text-lg">{p.nama}</p>
-                          <p className="text-sm text-slate-500 font-medium">{p.role}</p>
+                          <p className="font-bold text-wise-ink text-lg">{p.nama}</p>
+                          <p className="text-sm text-wise-mute font-medium">{p.role}</p>
                         </div>
                       </div>
                       <button 
                         onClick={() => toggleStatusPetugas(p.id)}
-                        className={`px-5 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm active:scale-95 ${
+                        className={`px-5 py-2 rounded-[12px] font-semibold text-sm transition-all shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95 ${
                           p.status !== 'Offline' 
-                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-200' 
-                            : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-300'
+                            ? 'bg-wise-primary-pale text-wise-positive-deep hover:bg-emerald-200 border border-emerald-200' 
+                            : 'bg-wise-canvas text-wise-body hover:bg-wise-canvas-soft border border-slate-300'
                         }`}
                       >
                         {p.status}
@@ -1316,7 +1316,7 @@ export default function DashboardPage() {
 
           {/* FOOTER INFO */}
           <footer className="mt-4 flex justify-center pb-4">
-            <p className="text-xs text-slate-400 font-medium">Parking System Architecture: Next.js + Context API + Tailwind CSS</p>
+            <p className="text-xs text-wise-mute font-medium">Parking System Architecture: Next.js + Context API + Tailwind CSS</p>
           </footer>
 
         </div>
@@ -1324,21 +1324,21 @@ export default function DashboardPage() {
 
       {/* ADMIN CHECKOUT OVERLAY */}
       {selectedVehicle && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border border-slate-200">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-wise-ink/60 backdrop-blur-sm">
+          <div className="bg-wise-canvas rounded-[24px] shadow-2xl p-8 max-w-md w-full border border-wise-canvas-soft">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-slate-800">Proses Pembayaran</h3>
-              <p className="text-sm text-slate-500">Tiket: {selectedVehicle}</p>
+              <h3 className="text-xl font-bold text-wise-ink">Proses Pembayaran</h3>
+              <p className="text-sm text-wise-mute">Tiket: {selectedVehicle}</p>
             </div>
             
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Status Layar Pelanggan</p>
+            <div className="bg-wise-canvas-soft rounded-[16px] p-4 border border-wise-canvas-soft mb-6">
+              <p className="text-xs text-wise-mute uppercase tracking-wider font-semibold mb-1">Status Layar Pelanggan</p>
               <div className="flex items-center gap-2">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                 </span>
-                <span className="text-sm font-medium text-blue-600">Menampilkan tagihan di /exit-display</span>
+                <span className="text-sm font-medium text-wise-primary">Menampilkan tagihan di /exit-display</span>
               </div>
             </div>
 
@@ -1349,13 +1349,13 @@ export default function DashboardPage() {
                   setExitProcessData(null);
                   setPaymentSuccess(false);
                 }}
-                className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors"
+                className="flex-1 px-4 py-3 border border-slate-300 text-wise-ink rounded-[16px] font-medium hover:bg-wise-canvas-soft transition-colors"
               >
                 Batal
               </button>
               <button 
                 onClick={confirmPayment}
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-sm active:scale-95"
+                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-wise-canvas rounded-[16px] font-medium transition-colors shadow-[0_8px_30px_rgb(0,0,0,0.04)] active:scale-95"
               >
                 Konfirmasi Bayar
               </button>
