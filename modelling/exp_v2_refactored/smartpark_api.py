@@ -13,6 +13,7 @@ import json
 import pickle
 import datetime
 import re
+import random
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -270,11 +271,20 @@ def predict(req: PredictRequest):
     df_scaled_inf[FEATURE_COLS] = scaler_X.transform(df[FEATURE_COLS])
     seq = df_scaled_inf[FEATURE_COLS].iloc[-WINDOW_SIZE:].values.reshape(1,WINDOW_SIZE,N_FEATURES)
 
-    m = get_model('clstan')
-    if m:
-        pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
+    # --- ONLINE A/B TESTING ROUTING ---
+    if random.random() < 0.5:
+        model_version = "A_CLSTAN"
+        m = get_model('clstan')
+        if m:
+            pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
+        else:
+            pred_occ = float(obs[-1].occupancy_rate)
+            model_version = "FALLBACK"
     else:
+        model_version = "B_BASELINE"
+        # Naive Baseline: Predict using the last observed value
         pred_occ = float(obs[-1].occupancy_rate)
+    # ----------------------------------
 
     recent_df_for_std = pd.DataFrame([o.dict() for o in obs])
     recent_std = float(recent_df_for_std['occupancy_rate'].tail(12).std())
@@ -292,6 +302,7 @@ def predict(req: PredictRequest):
     pid = f"pred_{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}"
     result = {
         'prediction_id': pid,
+        'model_version': model_version,
         'timestamp': datetime.datetime.now().isoformat(),
         'current_occupancy': round(obs[-1].occupancy_rate, 4),
         'predicted_occupancy_30min': round(pred_occ, 4),
@@ -315,6 +326,11 @@ def dashboard():
 def feedback(req: FeedbackRequest):
     entry = req.dict()
     entry['logged_at'] = datetime.datetime.now().isoformat()
+    
+    # Retrieve model_version from cache for A/B testing analysis
+    if req.prediction_id in prediction_cache:
+        entry['model_version'] = prediction_cache[req.prediction_id].get('model_version', 'UNKNOWN')
+        
     feedback_log.append(entry)
     return {"status":"logged","total_feedback": len(feedback_log)}
 
