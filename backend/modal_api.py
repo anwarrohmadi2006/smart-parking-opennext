@@ -41,9 +41,7 @@ api_image = (
 
 @app.function(
     image=api_image,
-    secrets=[modal.Secret.from_dict({
-        "GEMINI_API_KEY": os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
-    })]
+    secrets=[modal.Secret.from_name("gemini-secret")]
 )
 @modal.asgi_app()
 def web_app():
