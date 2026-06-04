@@ -1,8 +1,8 @@
 """
 Script: export_wandb_to_tensorboard.py
 Tujuan:
-  1. Mengambil history metrik (loss, mae, val_loss, val_mae per epoch) 
-     dari setiap run W&B yang sudah selesai.
+  1. Mengambil history metrik (loss, unscaled_val_mae, scaled_val_mae, dll) 
+     dari setiap run W&B yang sudah selesai secara dinamis dari project baru.
   2. Mengonversi metrics tersebut ke file TensorBoard event 
      (events.out.tfevents.*) di folder tensorboard_logs/<run_name>/.
   3. Upload folder TensorBoard logs tersebut ke W&B sebagai Artifact 
@@ -15,22 +15,8 @@ import numpy as np
 
 # ── Config ───────────────────────────────────────────────────────────────────
 WANDB_API_KEY = "YOUR_WANDB_API_KEY_HERE"
-PROJECT_PATH  = "anwarrohmadi111-universitas-islam-negeri-raden-mas-said-/Final"
+PROJECT_PATH  = "anwarrohmadi111-universitas-islam-negeri-raden-mas-said-/Capstone Projek CC26-PRU436"
 OUTPUT_DIR    = "tensorboard_logs"
-
-# 10 run ID resmi yang ingin diproses
-KEEP_IDS = {
-    "paklsqc5": "Run_1_Baseline",
-    "mq0mvjw0": "Run_2_CLSTAN_Original",
-    "ai6llo15": "Run_3_BiDir_Original",
-    "lwxyauek": "Run_4_CLSTAN_Tuned_Dropout",
-    "chsk0jqd": "Run_5_CLSTAN_Large_Batch",
-    "caaarbwy": "Run_6_BiDir_Tuned",
-    "15f8sola": "Run_7_CLSTAN_Residual",
-    "kaupgz2l": "Run_8_Hybrid_SelfAttn",
-    "xyqmbt7o": "Run_9_GradientTape_CLSTAN",
-    "y35qfzq6": "Run_10_Ensemble",
-}
 
 os.environ["WANDB_API_KEY"] = WANDB_API_KEY
 
@@ -48,8 +34,8 @@ def write_tf_events(log_dir, history_rows):
     os.makedirs(log_dir, exist_ok=True)
     writer = tf.summary.create_file_writer(log_dir)
     
-    metric_keys = ["loss", "mae", "val_loss", "val_mae",
-                   "best_val_mae", "best_val_mae_final",
+    metric_keys = ["loss", "scaled_train_mae", "scaled_val_mae", "unscaled_val_mae",
+                   "best_unscaled_val_mae", "best_unscaled_val_mae_final",
                    "test_mae", "test_rmse", "test_r2", "test_accuracy_5pct"]
     
     with writer.as_default():
@@ -76,7 +62,6 @@ def write_tf_events(log_dir, history_rows):
 def write_fallback_events(log_dir, history_rows):
     """
     Fallback: Tulis TensorBoard event file menggunakan struct binary format.
-    Ini mirip dengan format yang dibaca TensorBoard.
     """
     import struct
     import time
@@ -96,8 +81,8 @@ def write_fallback_events(log_dir, history_rows):
         data_masked_crc = struct.pack('I', masked_crc32c(data))
         f.write(len_bytes + len_masked_crc + data + data_masked_crc)
 
-    metric_keys = ["loss", "mae", "val_loss", "val_mae",
-                   "best_val_mae", "test_mae", "test_rmse", "test_accuracy_5pct"]
+    metric_keys = ["loss", "scaled_train_mae", "scaled_val_mae", "unscaled_val_mae",
+                   "best_unscaled_val_mae", "test_mae", "test_rmse", "test_accuracy_5pct"]
 
     with open(fname, 'wb') as f:
         for row in history_rows:
@@ -128,16 +113,11 @@ def main():
     print(f"\n[INFO] Menghubungkan ke W&B project: {PROJECT_PATH}")
     runs = api.runs(PROJECT_PATH)
     
-    # Buat index: run_id -> run object
-    run_index = {r.id: r for r in runs}
-    
     total_processed = 0
-    for run_id, run_name in KEEP_IDS.items():
-        if run_id not in run_index:
-            print(f"[WARN] Run ID {run_id} ({run_name}) tidak ditemukan, skip.")
-            continue
+    for run_obj in runs:
+        run_id = run_obj.id
+        run_name = run_obj.name
         
-        run_obj = run_index[run_id]
         print(f"\n[INFO] Memproses: {run_name} (ID: {run_id})")
         
         # Ambil history dari W&B
@@ -150,10 +130,10 @@ def main():
             continue
         
         if len(history_rows) == 0:
-            # Untuk run 10 (ensemble), tidak ada epoch history, gunakan summary
+            # Jika run ensemble (Run 10) tidak memiliki epoch history, gunakan summary
             summary = dict(run_obj.summary)
             history_rows = [{"epoch": 1, **summary}]
-            print(f"   [INFO] Menggunakan summary saja (run ensemble).")
+            print(f"   [INFO] Menggunakan summary saja.")
         
         # Tulis TensorBoard events
         log_dir = os.path.join(OUTPUT_DIR, run_name)
@@ -170,7 +150,7 @@ def main():
         # Upload folder sebagai W&B Artifact di run tersebut
         try:
             resumed_run = wandb.init(
-                project="Final",
+                project="Capstone Projek CC26-PRU436",
                 entity="anwarrohmadi111-universitas-islam-negeri-raden-mas-said-",
                 id=run_id,
                 resume="must",
