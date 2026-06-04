@@ -839,7 +839,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Card 2: AI Asisten Cerdas (Model CLSTAN) */}
+                {/* Card 2: AI Asisten Cerdas (Model BiDir) */}
                 <div className="bg-slate-950 text-wise-canvas p-6 rounded-[24px] shadow-xl border border-blue-500/20 relative overflow-hidden min-h-[220px] flex flex-col justify-between">
                   {/* Background glowing aura */}
                   <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-600/10 rounded-full blur-2xl"></div>
@@ -860,7 +860,7 @@ export default function DashboardPage() {
                           {aiPrediction.source.includes("Cloud") ? "Modal.com Cloud" : "Local Fallback"}
                         </span>
                       ) : (
-                        <span className="text-[10px] bg-blue-900/50 text-blue-400 border border-blue-800/50 px-2 py-0.5 rounded font-mono">Model CLSTAN</span>
+                        <span className="text-[10px] bg-blue-900/50 text-blue-400 border border-blue-800/50 px-2 py-0.5 rounded font-mono">Model BiDir</span>
                       )}
                     </div>
 
@@ -939,10 +939,10 @@ export default function DashboardPage() {
                               )}
                             </div>
 
-                            {/* Node 4: 30 Min (CLSTAN) */}
+                            {/* Node 4: 30 Min (BiDir) */}
                             <div className="flex flex-col items-center relative z-10">
                               <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950 flex items-center justify-center shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
-                              <span className="text-[9px] text-emerald-400 font-semibold mt-1" title="Dihitung oleh model CLSTAN">+30 Mins*</span>
+                              <span className="text-[9px] text-emerald-400 font-semibold mt-1" title="Dianalisis secara prediktif oleh model BiDir">+30 Mins*</span>
                               <span className="text-[11px] font-bold text-emerald-400 font-mono mt-0.5">{aiPrediction.predicted_pct}</span>
                               {getActualFutureOccupancy(30) !== null && (
                                 <span className="text-[9px] text-wise-mute font-mono mt-0.5">
@@ -952,7 +952,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <p className="text-[8px] text-wise-mute italic mt-3 text-right">
-                            *Prediksi 30m dihitung oleh model CLSTAN, sedangkan 10m &amp; 20m diinterpolasikan linier.
+                            *Prediksi okupansi 30 menit ke depan dianalisis secara prediktif oleh model Deep Learning BiDir. Estimasi 10 menit dan 20 menit diperoleh melalui interpolasi linier.
                           </p>
                         </div>
 

@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
         weather: String(obs.weather || "SUNNY").toUpperCase(),
       })),
       internet_ok: true,
-      use_ensemble: false, // Default to CLSTAN best single model
+      use_ensemble: false, // Default to BiDir best single model
     };
 
     // Check in-memory cache to prevent excessive API calls and database reads
