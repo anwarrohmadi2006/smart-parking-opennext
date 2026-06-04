@@ -50,7 +50,7 @@ N_FEATURES  = len(FEATURE_COLS)
 
 # Lazy-load TF to keep startup fast
 _models = {}
-def get_model(name='clstan'):
+def get_model(name='bidir'):
     import tensorflow as tf
     from tensorflow.keras import layers
 
@@ -65,7 +65,7 @@ def get_model(name='clstan'):
             return super().get_config()
 
     if name not in _models:
-        p = BASE_DIR / "best_clstan.keras" if name == 'clstan' else BASE_DIR / f'best_{name}.keras'
+        p = BASE_DIR / "best_bidir.keras" if name == 'bidir' else BASE_DIR / f'best_{name}.keras'
         if p.exists():
             _models[name] = tf.keras.models.load_model(
                 str(p),
@@ -73,8 +73,8 @@ def get_model(name='clstan'):
                 compile=False
             )
         else:
-            # Fallback if specific file name is requested but only best_clstan is present
-            alt_p = BASE_DIR / "best_clstan.keras"
+            # Fallback if specific file name is requested but only best_bidir is present
+            alt_p = BASE_DIR / "best_bidir.keras"
             if alt_p.exists():
                 _models[name] = tf.keras.models.load_model(
                     str(alt_p),
@@ -267,8 +267,8 @@ def predict(req: PredictRequest):
 
     # --- ONLINE A/B TESTING ROUTING ---
     if random.random() < 0.5:
-        model_version = "A_CLSTAN"
-        m = get_model('clstan')
+        model_version = "A_BIDIR"
+        m = get_model('bidir')
         if m:
             pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
         else:

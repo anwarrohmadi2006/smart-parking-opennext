@@ -19,7 +19,7 @@ api_image = (
     )
     .add_local_file(
         local_path="C:/Users/user/Downloads/next js on opennext github action/research/experiments_final/SmartPark_Capstone_Final_Package (1)/smartpark_outputs/BiDir_Original.keras",
-        remote_path="/root/best_clstan.keras"
+        remote_path="/root/best_bidir.keras"
     )
     .add_local_file(
         local_path="C:/Users/user/Downloads/next js on opennext github action/backend/scaler_X.pkl",
