@@ -21,15 +21,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
-import requests
+import google.generativeai as genai
 
 # Setup current working directory path for loading files
 BASE_DIR = Path(__file__).resolve().parent
 
-# ─ Setup Cloudflare Workers AI ───────────────────────────────────────────────
-CF_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
-CF_API_TOKEN = os.environ.get("CLOUDFLARE_API_TOKEN")
-CF_AI_AVAILABLE = bool(CF_ACCOUNT_ID and CF_API_TOKEN)
+# ─ Setup Generative AI (Gemini) ───────────────────────────────────────────────
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite-preview-02-05')
+else:
+    gemini_model = None
 
 # ── Load artifacts ─────────────────────────────────────────────────────────
 try:
@@ -159,10 +162,10 @@ def generate_action_recommendation(pred_occ: float, confidence: dict,
 
 def generate_ai_narrative(pred_occ: float, rec: dict,
                            weather: str = 'SUNNY', hour: int = 10) -> str:
-    """Hasilkan narasi admin menggunakan Cloudflare AI atau fallback."""
+    """Hasilkan narasi admin menggunakan Gemini AI atau fallback."""
     predicted_pct_str = f"{rec.get('predicted_pct', 'N/A')}"
 
-    if not CF_AI_AVAILABLE:
+    if not gemini_model:
         hour_ctx = 'pagi' if hour < 12 else ('siang' if hour < 15 else ('sore' if hour < 19 else 'malam'))
         weather_ctx = {'SUNNY':'cerah','OVERCAST':'mendung','RAINY':'hujan'}.get(weather,'tidak diketahui')
         return (f"[AI Narasi — Fallback] Pada {hour_ctx} ini dengan cuaca {weather_ctx}, "
@@ -181,24 +184,10 @@ Berikan narasi singkat (2-3 kalimat) dalam Bahasa Indonesia untuk admin parkir b
 Narasi harus praktis, mudah dipahami admin lapangan, tidak teknis, dan langsung berikan poin utama."""
 
     try:
-        url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3-8b-instruct"
-        headers = {"Authorization": f"Bearer {CF_API_TOKEN}"}
-        payload = {
-            "messages": [
-                {"role": "system", "content": "Anda adalah asisten AI untuk manajemen parkir."},
-                {"role": "user", "content": prompt}
-            ]
-        }
-        
-        response = requests.post(url, headers=headers, json=payload, timeout=10)
-        
-        if response.status_code == 200:
-            ai_data = response.json()
-            return ai_data.get('result', {}).get('response', f"[AI Fallback] {rec['human_summary']}").strip()
-        else:
-            return f"[Cloudflare error: HTTP {response.status_code}] {rec['human_summary']}"
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip()
     except Exception as e:
-        return f"[Cloudflare error: {e}] {rec['human_summary']}"
+        return f"[Gemini API error: {e}] {rec['human_summary']}"
 
 
 # ── Pydantic Schemas ───────────────────────────────────────────────────────

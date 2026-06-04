@@ -63,10 +63,10 @@ Berikut adalah detail bagaimana setiap kriteria teknis diimplementasikan dalam r
   * Penerapan gradien ke optimizer via `opt_tape.apply_gradients()`.
   * Perhitungan performansi validasi manual per epoch dengan *inverse transform* langsung ke target mentah (`y_val_raw`).
 
-### 3. Integrasi API Generative AI (Cloudflare Workers AI)
+### 3. Integrasi API Generative AI (Gemini)
 * **Lokasi Implementasi:** [`exp_v2_refactored/smartpark_api.py`](file:///c:/Users/user/Downloads/next%20js%20on%20opennext%20github%20action/modelling/exp_v2_refactored/smartpark_api.py) fungsi `generate_ai_narrative()` (Line 138 - 168).
-* **Keterangan:** Menggunakan REST API untuk menembak model `Llama-3-8B` buatan Meta di infrastruktur Cloudflare Workers AI. Ini menghasilkan narasi rekomendasi operasional singkat, non-teknis, dan *actionable* berbahasa Indonesia bagi petugas lapangan secara cepat dan efisien.
-* **Fallback Aman:** Jika request gagal, sistem secara otomatis beralih (*graceful fallback*) menggunakan parser berbasis aturan (*rule-based*) agar REST API tidak crash.
+* **Keterangan:** Menggunakan paket `google-generativeai` dengan model `gemini-2.0-flash-lite-preview-02-05` untuk menghasilkan narasi rekomendasi operasional singkat, non-teknis, dan *actionable* berbahasa Indonesia bagi petugas lapangan. 
+* **Fallback Aman:** Jika API Key Gemini tidak diset, sistem secara otomatis beralih (*graceful fallback*) menggunakan parser berbasis aturan (*rule-based*) agar REST API tidak crash.
 
 ### 4. Integrasi TensorBoard & Log di Repositori
 * **Lokasi Log Lokal:** Folder [`exp_v2_refactored/tensorboard_logs/`](file:///c:/Users/user/Downloads/next%20js%20on%20opennext%20github%20action/modelling/exp_v2_refactored/tensorboard_logs/)
@@ -108,7 +108,7 @@ graph TD
     G --> I[Deploy REST API: smartpark_api.py]
     I --> J[User Request]
     J --> K[Inference Prediksi & Evaluasi Aturan]
-    K --> L[Generate Narasi Petugas Lapangan via Cloudflare Llama-3 AI]
+    K --> L[Generate Narasi Petugas Lapangan via Gemini 2.0 Flash Lite]
     L --> M[Output JSON Response Ke Admin]
 ```
 
