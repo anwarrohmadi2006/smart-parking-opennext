@@ -10,7 +10,8 @@ SmartPark AI adalah sistem prediksi okupansi parkir cerdas berbasis Deep Learnin
 
 ## 📂 Struktur Proyek Terpenting
 - `/app` - Halaman utama Next.js (Dashboard Admin & API Proxy).
-- `/modelling` - *Source code* untuk training AI, evaluasi W&B, dan deployment cloud API (`smartpark_api.py`) ke Modal.com.
+- `/backend` - *Source code* API produksi (`smartpark_api.py`) untuk serverless deployment ke Modal.com.
+- `/research` - *Jupyter Notebooks*, evaluasi model, dan riwayat eksperimen arsitektur AI (BiDir, CLSTAN, dll).
 - `/lib` - Koneksi Firebase dan Utilities.
 - `/tests` - Skrip verifikasi mandiri akurasi model AI.
 
@@ -34,6 +35,6 @@ Aplikasi akan berjalan di `http://localhost:3000`.
 ## 🧠 Deployment Model AI
 Model AI dikelola terpisah di platform Modal.com untuk *high-performance inference*. Untuk mendeploy ulang:
 ```bash
-cd modelling/exp_v2_refactored
-modal deploy smartpark_api.py
+cd backend
+modal deploy modal_api.py
 ```

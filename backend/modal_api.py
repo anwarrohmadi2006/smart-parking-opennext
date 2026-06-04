@@ -18,23 +18,23 @@ api_image = (
         "google-generativeai"
     )
     .add_local_file(
-        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_final/SmartPark_Capstone_Final_Package (1)/smartpark_outputs/BiDir_Original.keras",
+        local_path="C:/Users/user/Downloads/next js on opennext github action/research/experiments_final/SmartPark_Capstone_Final_Package (1)/smartpark_outputs/BiDir_Original.keras",
         remote_path="/root/best_clstan.keras"
     )
     .add_local_file(
-        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_v2_refactored/scaler_X.pkl",
+        local_path="C:/Users/user/Downloads/next js on opennext github action/backend/scaler_X.pkl",
         remote_path="/root/scaler_X.pkl"
     )
     .add_local_file(
-        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_v2_refactored/scaler_y.pkl",
+        local_path="C:/Users/user/Downloads/next js on opennext github action/backend/scaler_y.pkl",
         remote_path="/root/scaler_y.pkl"
     )
     .add_local_file(
-        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_v2_refactored/feature_cols.pkl",
+        local_path="C:/Users/user/Downloads/next js on opennext github action/backend/feature_cols.pkl",
         remote_path="/root/feature_cols.pkl"
     )
     .add_local_file(
-        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_v2_refactored/smartpark_api.py",
+        local_path="C:/Users/user/Downloads/next js on opennext github action/backend/smartpark_api.py",
         remote_path="/root/smartpark_api.py"
     )
 )
