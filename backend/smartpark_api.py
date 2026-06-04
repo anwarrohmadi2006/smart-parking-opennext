@@ -48,20 +48,34 @@ except Exception as e:
 WINDOW_SIZE = 18
 N_FEATURES  = len(FEATURE_COLS)
 
+import tensorflow as tf
+
+@tf.keras.utils.register_keras_serializable()
+class TemporalAttention(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super(TemporalAttention, self).__init__(**kwargs)
+    def build(self, input_shape):
+        self.W = self.add_weight(name="att_weight", shape=(input_shape[-1], 1), initializer="normal")
+        self.b = self.add_weight(name="att_bias", shape=(input_shape[1], 1), initializer="zeros")
+        super(TemporalAttention, self).build(input_shape)
+    def call(self, x):
+        e = tf.keras.backend.tanh(tf.keras.backend.dot(x, self.W) + self.b)
+        a = tf.keras.backend.softmax(e, axis=1)
+        output = x * a
+        return tf.keras.backend.sum(output, axis=1)
+
 # Lazy-load TF to keep startup fast
 _models = {}
 def get_model(name='bidir'):
-    import tensorflow as tf
-
     if name not in _models:
         p = BASE_DIR / "best_bidir.keras" if name == 'bidir' else BASE_DIR / f'best_{name}.keras'
         if p.exists():
-            _models[name] = tf.keras.models.load_model(str(p), compile=False)
+            _models[name] = tf.keras.models.load_model(str(p), custom_objects={'TemporalAttention': TemporalAttention}, compile=False)
         else:
             # Fallback if specific file name is requested but only best_bidir is present
             alt_p = BASE_DIR / "best_bidir.keras"
             if alt_p.exists():
-                _models[name] = tf.keras.models.load_model(str(alt_p), compile=False)
+                _models[name] = tf.keras.models.load_model(str(alt_p), custom_objects={'TemporalAttention': TemporalAttention}, compile=False)
     return _models.get(name)
 
 # ── Custom Logic ────────────────────────────────────────────────
