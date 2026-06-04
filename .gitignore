@@ -10,3 +10,8 @@ coverage/
 
 # wandb cache
 wandb/
+
+*.keras
+*.zip
+__pycache__/
+*.csv
