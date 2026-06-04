@@ -202,33 +202,49 @@ feedback_log = []
 prediction_cache = {}
 
 def build_features(obs_list):
-    weather_map = {'SUNNY':0,'OVERCAST':1,'RAINY':2,'UNKNOWN':0}
+    weather_map = {'SUNNY':0,'OVERCAST':1,'RAINY':2,'UNKNOWN':0,'S':0,'C':1,'R':2}
     rows = []
     for o in obs_list:
+        # Convert JS day_of_week (0=Sun, 1=Mon) to Pandas day_of_week (0=Mon, 6=Sun)
+        pd_dow = (o.day_of_week + 6) % 7
+        
         rows.append({
-            'occupancy_rate':o.occupancy_rate,'hour':o.hour,
-            'day_of_week':o.day_of_week,'is_weekend':o.is_weekend,
+            'occupancy_rate': o.occupancy_rate,
+            'hour': o.hour,
+            'day_of_week': pd_dow,
+            'is_weekend': o.is_weekend,
             'weather_encoded': weather_map.get(o.weather.upper(), 0),
-            'hour_sin': np.sin(2*np.pi*o.hour/24),
-            'hour_cos': np.cos(2*np.pi*o.hour/24),
-            'dow_sin':  np.sin(2*np.pi*o.day_of_week/7),
-            'dow_cos':  np.cos(2*np.pi*o.day_of_week/7),
+            'hour_sin': np.sin(2 * np.pi * o.hour / 24),
+            'hour_cos': np.cos(2 * np.pi * o.hour / 24),
+            'dow_sin':  np.sin(2 * np.pi * pd_dow / 7),
+            'dow_cos':  np.cos(2 * np.pi * pd_dow / 7),
         })
+    
     df = pd.DataFrame(rows)
+    
+    df['is_morning_peak'] = df['hour'].between(8, 11).astype(int)
+    df['is_evening_peak'] = df['hour'].between(16, 19).astype(int)
+    df['is_rush_hour']    = df['hour'].isin([7, 8, 9, 16, 17, 18]).astype(int)
+
     for lag in [1, 2, 3, 6, 12, 24, 48]:
-        df[f'lag_{lag}'] = df['occupancy_rate'].shift(lag).fillna(df['occupancy_rate'].mean() if not df['occupancy_rate'].empty else 0.0)
-    for w in [3,6,12,24,48]:
-        df[f'roll_mean_{w}'] = df['occupancy_rate'].rolling(w,min_periods=1).mean()
-        df[f'roll_std_{w}']  = df['occupancy_rate'].rolling(w,min_periods=1).std().fillna(0)
+        df[f'lag_{lag}'] = df['occupancy_rate'].shift(lag)
+        
+    for w in [3, 6, 12, 24, 48]:
+        df[f'roll_mean_{w}'] = df['occupancy_rate'].rolling(w, min_periods=1).mean()
+        df[f'roll_std_{w}']  = df['occupancy_rate'].rolling(w, min_periods=1).std().fillna(0)
+        
     df['momentum']     = df['occupancy_rate'].diff().fillna(0)
     df['acceleration'] = df['momentum'].diff().fillna(0)
-    df['ema_01'] = df['occupancy_rate'].ewm(alpha=0.1).mean()
-    df['ema_03'] = df['occupancy_rate'].ewm(alpha=0.3).mean()
-    df['is_morning_peak'] = df['hour'].between(8,11).astype(int)
-    df['is_evening_peak'] = df['hour'].between(16,19).astype(int)
-    df['is_rush_hour']    = df['hour'].isin([7,8,9,16,17,18]).astype(int)
+    df['ema_01']       = df['occupancy_rate'].ewm(alpha=0.1).mean()
+    df['ema_03']       = df['occupancy_rate'].ewm(alpha=0.3).mean()
+    
+    # Ensure all features exist and match training fillna logic exactly
     for c in FEATURE_COLS:
-        if c not in df.columns: df[c] = 0.0
+        if c not in df.columns: 
+            df[c] = 0.0
+            
+    df[FEATURE_COLS] = df[FEATURE_COLS].bfill().ffill().fillna(0)
+    
     return df
 
 @app.get("/health")
