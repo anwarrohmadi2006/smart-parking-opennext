@@ -15,10 +15,10 @@ api_image = (
         "protobuf<4.24",
         "pandas",
         "scikit-learn",
-        "google-generativeai"
+        "requests"
     )
     .add_local_file(
-        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_v2_refactored/best_clstan.keras",
+        local_path="C:/Users/user/Downloads/next js on opennext github action/modelling/exp_final/SmartPark_Capstone_Final_Package (1)/smartpark_outputs/BiDir_Original.keras",
         remote_path="/root/best_clstan.keras"
     )
     .add_local_file(
@@ -41,9 +41,7 @@ api_image = (
 
 @app.function(
     image=api_image,
-    secrets=[modal.Secret.from_dict({
-        "GEMINI_API_KEY": os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
-    })]
+    secrets=[modal.Secret.from_name("cloudflare-api", required_keys=["CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN"])]
 )
 @modal.asgi_app()
 def web_app():

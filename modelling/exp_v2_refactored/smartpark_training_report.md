@@ -12,7 +12,7 @@ Berdasarkan hasil pengujian pada **Test Set** (data masa depan yang ditahan seca
 | Model | Metrik MAE (Skala Asli) | Akurasi (Prediksi dengan Error ≤ 5%) | R² Score | Status Kelayakan |
 |---|---|---|---|---|
 | **Weighted Ensemble (Model Utama)** | **0.01981** | **93.88%** | **0.98304** | **LULUS ✅** |
-| **CLSTAN_Residual (Single Terbaik)** | **0.01497** | **93.43%** | **0.98693** | **LULUS ✅** |
+| **BiDir_Original (Single Terbaik)** | **0.01432** | **95.27%** | **0.98076** | **LULUS ✅** |
 
 * **Akurasi Minimal (Ketentuan: ≥ 85%):** Model Ensemble mencapai akurasi **93.88%** (lebih tinggi **8.88%** dari batas minimum).
 * **MAE Maksimal (Ketentuan: ≤ 0.02):** Model Ensemble mencapai MAE **0.01981** (lebih rendah dan lebih presisi dibanding batas maksimal 0.02).
@@ -63,10 +63,10 @@ Berikut adalah detail bagaimana setiap kriteria teknis diimplementasikan dalam r
   * Penerapan gradien ke optimizer via `opt_tape.apply_gradients()`.
   * Perhitungan performansi validasi manual per epoch dengan *inverse transform* langsung ke target mentah (`y_val_raw`).
 
-### 3. Integrasi API Generative AI (Gemini)
+### 3. Integrasi API Generative AI (Cloudflare Workers AI)
 * **Lokasi Implementasi:** [`exp_v2_refactored/smartpark_api.py`](file:///c:/Users/user/Downloads/next%20js%20on%20opennext%20github%20action/modelling/exp_v2_refactored/smartpark_api.py) fungsi `generate_ai_narrative()` (Line 138 - 168).
-* **Keterangan:** Menggunakan paket `google-generativeai` dengan model `gemini-1.5-flash` untuk menghasilkan narasi rekomendasi operasional singkat, non-teknis, dan *actionable* berbahasa Indonesia bagi petugas lapangan. 
-* **Fallback Aman:** Jika API Key Gemini tidak diset, sistem secara otomatis beralih (*graceful fallback*) menggunakan parser berbasis aturan (*rule-based*) agar REST API tidak crash.
+* **Keterangan:** Menggunakan REST API untuk menembak model `Llama-3-8B` buatan Meta di infrastruktur Cloudflare Workers AI. Ini menghasilkan narasi rekomendasi operasional singkat, non-teknis, dan *actionable* berbahasa Indonesia bagi petugas lapangan secara cepat dan efisien.
+* **Fallback Aman:** Jika request gagal, sistem secara otomatis beralih (*graceful fallback*) menggunakan parser berbasis aturan (*rule-based*) agar REST API tidak crash.
 
 ### 4. Integrasi TensorBoard & Log di Repositori
 * **Lokasi Log Lokal:** Folder [`exp_v2_refactored/tensorboard_logs/`](file:///c:/Users/user/Downloads/next%20js%20on%20opennext%20github%20action/modelling/exp_v2_refactored/tensorboard_logs/)
@@ -84,7 +84,7 @@ Kami mengimplementasikan **ketiga** komponen kustom tingkat lanjut ini demi stab
 
 ### 7. Ekspor Model Siap Produksi (.keras)
 * **Lokasi File:** [`exp_v2_refactored/best_clstan.keras`](file:///c:/Users/user/Downloads/next%20js%20on%20opennext%20github%20action/modelling/exp_v2_refactored/best_clstan.keras)
-* **Keterangan:** Model tunggal berkinerja terbaik (`CLSTAN_Residual`) diekspor dalam format siap produksi terpadu TensorFlow (`.keras`) dan dapat dimuat kembali langsung untuk proses inference.
+* **Keterangan:** Model tunggal berkinerja terbaik (`BiDir_Original`) diekspor dalam format siap produksi terpadu TensorFlow (`.keras`) dan dapat dimuat kembali langsung untuk proses inference. (Catatan: file model di-mount sebagai `best_clstan.keras` di infrastruktur Modal agar API berjalan mulus).
 
 ### 8. Kode Sederhana Proses Inference
 * **Lokasi File:** [`exp_v2_refactored/inference_example.py`](file:///c:/Users/user/Downloads/next%20js%20on%20opennext%20github%20action/modelling/exp_v2_refactored/inference_example.py)
@@ -108,7 +108,7 @@ graph TD
     G --> I[Deploy REST API: smartpark_api.py]
     I --> J[User Request]
     J --> K[Inference Prediksi & Evaluasi Aturan]
-    K --> L[Generate Narasi Petugas Lapangan via Gemini AI]
+    K --> L[Generate Narasi Petugas Lapangan via Cloudflare Llama-3 AI]
     L --> M[Output JSON Response Ke Admin]
 ```
 

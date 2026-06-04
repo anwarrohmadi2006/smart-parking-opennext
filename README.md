@@ -1,6 +1,6 @@
 # SmartPark AI 🚗🤖
 
-SmartPark AI adalah sistem prediksi okupansi parkir cerdas berbasis Deep Learning (CLSTAN Residual) yang di-deploy ke arsitektur Cloud Serverless. Aplikasi ini dibangun dengan stack modern menggunakan Next.js (OpenNext), Modal.com untuk AI inference, dan Firebase untuk real-time data layer.
+SmartPark AI adalah sistem prediksi okupansi parkir cerdas berbasis Deep Learning (Bi-Directional GRU-LSTM / BiDir) yang di-deploy ke arsitektur Cloud Serverless. Aplikasi ini dibangun dengan stack modern menggunakan Next.js (OpenNext), Modal.com untuk AI inference, dan Firebase untuk real-time data layer.
 
 ## 🌟 Fitur Utama
 - **Real-Time Prediction**: Prediksi tingkat okupansi 30 menit ke depan dengan sangat akurat memanfaatkan *Temporal Attention* dan arsitektur *Residual LSTM*.

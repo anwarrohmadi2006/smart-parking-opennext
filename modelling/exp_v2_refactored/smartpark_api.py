@@ -21,23 +21,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional
-import google.generativeai as genai
+import requests
 
 # Setup current working directory path for loading files
 BASE_DIR = Path(__file__).resolve().parent
 
-# ─ Setup Gemini ──────────────────────────────────────────────────────────────
-# NOTE: Replace with your API key from https://aistudio.google.com/app/apikey
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY_HERE")
-
-GEMINI_AVAILABLE = False
-try:
-    if GEMINI_API_KEY and GEMINI_API_KEY != "YOUR_GEMINI_API_KEY_HERE":
-        genai.configure(api_key=GEMINI_API_KEY)
-        gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-        GEMINI_AVAILABLE = True
-except Exception as e:
-    GEMINI_AVAILABLE = False
+# ─ Setup Cloudflare Workers AI ───────────────────────────────────────────────
+CF_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+CF_API_TOKEN = os.environ.get("CLOUDFLARE_API_TOKEN")
+CF_AI_AVAILABLE = bool(CF_ACCOUNT_ID and CF_API_TOKEN)
 
 # ── Load artifacts ─────────────────────────────────────────────────────────
 try:
@@ -167,10 +159,10 @@ def generate_action_recommendation(pred_occ: float, confidence: dict,
 
 def generate_ai_narrative(pred_occ: float, rec: dict,
                            weather: str = 'SUNNY', hour: int = 10) -> str:
-    """Hasilkan narasi admin menggunakan Gemini atau fallback."""
+    """Hasilkan narasi admin menggunakan Cloudflare AI atau fallback."""
     predicted_pct_str = f"{rec.get('predicted_pct', 'N/A')}"
 
-    if not GEMINI_AVAILABLE:
+    if not CF_AI_AVAILABLE:
         hour_ctx = 'pagi' if hour < 12 else ('siang' if hour < 15 else ('sore' if hour < 19 else 'malam'))
         weather_ctx = {'SUNNY':'cerah','OVERCAST':'mendung','RAINY':'hujan'}.get(weather,'tidak diketahui')
         return (f"[AI Narasi — Fallback] Pada {hour_ctx} ini dengan cuaca {weather_ctx}, "
@@ -184,16 +176,29 @@ Berikan narasi singkat (2-3 kalimat) dalam Bahasa Indonesia untuk admin parkir b
 - Status: {rec['urgency']}
 - Cuaca: {weather}
 - Jam: {hour:02d}:00
-- Confidence model: {rec.get('confidence_human','N/A')}
 - Saran sistem: {'; '.join(rec['actions'][:2])}
 
-Narasi harus: praktis, mudah dipahami admin lapangan, tidak teknis, dan actionable."""
+Narasi harus praktis, mudah dipahami admin lapangan, tidak teknis, dan langsung berikan poin utama."""
 
     try:
-        resp = gemini_model.generate_content(prompt)
-        return resp.text.strip()
+        url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/@cf/meta/llama-3-8b-instruct"
+        headers = {"Authorization": f"Bearer {CF_API_TOKEN}"}
+        payload = {
+            "messages": [
+                {"role": "system", "content": "Anda adalah asisten AI untuk manajemen parkir."},
+                {"role": "user", "content": prompt}
+            ]
+        }
+        
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            ai_data = response.json()
+            return ai_data.get('result', {}).get('response', f"[AI Fallback] {rec['human_summary']}").strip()
+        else:
+            return f"[Cloudflare error: HTTP {response.status_code}] {rec['human_summary']}"
     except Exception as e:
-        return f"[Gemini error: {e}] {rec['human_summary']}"
+        return f"[Cloudflare error: {e}] {rec['human_summary']}"
 
 
 # ── Pydantic Schemas ───────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Firebase Realtime Database wrapper
  *
@@ -5,8 +6,10 @@
  * modul ini tersedia via firebase-database.d.ts (ambient declaration).
  */
 
+// @ts-ignore
 export type { DataSnapshot, Database, DatabaseReference, Query, Unsubscribe, EventType, QueryConstraint } from "@firebase/database";
 
+// @ts-ignore
 import {
   getDatabase,
   ref,

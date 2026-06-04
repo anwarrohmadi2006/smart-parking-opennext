@@ -1,0 +1,16 @@
+{
+  "dataset": "CNRPark+EXT CSV",
+  "forecast_horizon_minutes": 30,
+  "window_size": 18,
+  "number_of_features": 27,
+  "best_model_by_test_mae": "Hybrid_SelfAttn",
+  "best_test_mae_original_scale": 0.013392548219642648,
+  "best_test_rmse_original_scale": 0.03409381167942513,
+  "best_test_r2": 0.9812946148585661,
+  "best_accuracy_within_0.05_pct": 93.65440264572136,
+  "best_single_model_by_validation_mae": "Baseline",
+  "evaluation_note": "Final metrics are computed after inverse_transform to the original occupancy scale.",
+  "ab_testing_owner": "Data Science",
+  "ab_testing_method": "Offline historical backtesting with naive persistence baseline",
+  "bootstrap_method": "Block bootstrap on paired error difference"
+}
