@@ -71,7 +71,7 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 
 - **Dataset Utama:** [CNRPark+EXT Dataset](https://github.com/fabiocarrara/deep-parking/releases/download/archive/CNRPark+EXT.csv) *(Dataset publik representatif variasi cahaya, bayangan, & partial occlusion)*
 - **Live App (Dashboard Admin - Next.js):** Sistem Manajemen Parkir
-- **Dashboard Streamlit (Data Analytics):** Dashboard Analitik SmartPark AI · Streamlit
+- **Dashboard Streamlit (Data Analytics):** [https://smartpark-ai-dashboard.streamlit.app/](https://smartpark-ai-dashboard.streamlit.app/)
 - **AI Inference API (Modal.com):** [https://anwarrohmadi111--smartpark-api-web-app.modal.run](https://anwarrohmadi111--smartpark-api-web-app.modal.run)
 - **Video Presentasi (Pitching):** [https://youtu.be/thWRA60pTcA](https://youtu.be/thWRA60pTcA)
 - **Slide Presentasi:** [https://canva.link/zqap36unfugeg7h](https://canva.link/zqap36unfugeg7h)
