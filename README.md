@@ -78,6 +78,7 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 - **Penggunaan Produk:** [Buku Panduan] CC26-PRU436
 - **Dokumentasi Riset Pemodelan (Google Colab):** [Akses Lingkungan Eksperimen](https://colab.research.google.com/drive/1V2brg3_K2bH1EtTdeJO3vQALBESH9d2G?usp=sharing)
 - **Laporan Teknis Komprehensif:** [SmartPark_Technical_Report.md](./SmartPark_Technical_Report.md)
+- **Aset Model AI (Google Drive):** [Unduh Model BiDir LSTM](https://drive.google.com/drive/folders/1jz4Wm4rBRS36HVIJ0tD_3kx1_VJT7IfX?usp=sharing)
 
 ---
 
