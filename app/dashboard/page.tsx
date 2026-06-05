@@ -75,7 +75,7 @@ export default function EntryGatePage() {
   }, [modalData]);
 
   return (
-    <main className="min-h-screen w-full bg-wise-canvas-soft text-wise-ink flex flex-col font-sans overflow-hidden">
+    <main className="min-h-screen w-full bg-wise-canvas-soft text-wise-ink flex flex-col font-sans md:overflow-hidden">
       
       {/* Banner Internet Lambat */}
       {isSlowInternet && (

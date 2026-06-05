@@ -410,12 +410,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="h-screen bg-wise-canvas-soft font-sans flex flex-col md:flex-row overflow-hidden relative">
+    <main className="min-h-screen md:h-screen bg-wise-canvas-soft font-sans flex flex-col md:flex-row md:overflow-hidden relative">
       
       {/* ==================================================== 
           BAGIAN ADMIN (KIRI) - Nuansa Gelap (Deep Blue/Slate)
           ==================================================== */}
-      <section className="bg-wise-ink text-wise-canvas w-full md:w-96 shrink-0 flex flex-col p-6 overflow-y-auto border-r border-wise-ink shadow-xl z-20">
+      <section className="bg-wise-ink text-wise-canvas w-full md:w-96 shrink-0 flex flex-col p-6 md:overflow-y-auto border-b md:border-b-0 md:border-r border-wise-ink shadow-xl z-20">
         <h1 className="text-xl font-bold mb-1 tracking-tight">ParkSystem <span className="text-blue-400">Admin</span></h1>
         <div className="flex items-center justify-between mb-6">
           <p className="text-wise-mute text-xs font-semibold uppercase tracking-wider">
@@ -506,7 +506,7 @@ export default function DashboardPage() {
       {/* ==================================================== 
           BAGIAN USER (KANAN) - Nuansa Terang (Clean/White)
           ==================================================== */}
-      <section className="flex-1 bg-wise-canvas-soft flex flex-col overflow-y-auto w-full">
+      <section className="flex-1 bg-wise-canvas-soft flex flex-col md:overflow-y-auto w-full">
         
         {/* Banner Internet Lambat */}
         {isSlowInternet && (
