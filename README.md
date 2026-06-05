@@ -76,6 +76,7 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 - **Video Presentasi (Pitching):** [https://youtu.be/thWRA60pTcA](https://youtu.be/thWRA60pTcA)
 - **Slide Presentasi:** [https://canva.link/zqap36unfugeg7h](https://canva.link/zqap36unfugeg7h)
 - **Penggunaan Produk:** [Buku Panduan] CC26-PRU436
+- **Dokumentasi Riset Pemodelan (Google Colab):** [Akses Lingkungan Eksperimen](https://colab.research.google.com/drive/1V2brg3_K2bH1EtTdeJO3vQALBESH9d2G?usp=sharing)
 
 ---
 
@@ -99,6 +100,7 @@ smart-parking-opennext/
 ├── .env.example        	# Template environment variables
 ├── database.rules.json 	# Firebase Realtime Database rules
 ├── firestore.rules     	# Firestore security rules
+├── notebook.ipynb      	# Berkas eksperimen utama (Jupyter Notebook) yang memuat rekam jejak riset pemodelan AI
 ├── open-next.config.ts 	# Konfigurasi OpenNext (Cloudflare deployment)
 ├── wrangler.toml       	# Konfigurasi Cloudflare Workers
 └── README.md           	# Dokumentasi proyek 
@@ -151,6 +153,9 @@ SmartPark AI menggunakan arsitektur **Bidirectional LSTM (BiDir)** yang mampu me
 | AI Recommendation Engine | ✅ | ❌ | ❌ | ❌ |
 | Tahan Gangguan Visual | ✅ | N/A | N/A | ❌ |
 | Hemat Biaya & Serverless | ✅ | Sebagian | ❌ | Sebagian |
+
+### Dokumentasi Eksperimen dan Riset Pemodelan
+Proses rekayasa fitur (*feature engineering*), komparasi arsitektur jaringan saraf tiruan (termasuk *Hybrid Self-Attention*, *Bidirectional LSTM*, dan *Weighted Ensemble*), serta tahapan pengujian model secara menyeluruh didokumentasikan di dalam berkas eksperimen *Jupyter Notebook* (`notebook.ipynb`). Guna memfasilitasi peninjauan dan replikasi pengujian oleh evaluator atau pihak eksternal, seluruh ekosistem riset tersebut telah dipublikasikan secara terpusat pada platform [Google Colab](https://colab.research.google.com/drive/1V2brg3_K2bH1EtTdeJO3vQALBESH9d2G?usp=sharing). Pendekatan ini merupakan wujud komitmen tim terhadap transparansi metodologi analitik serta jaminan reprodusibilitas (*reproducibility*) dari metrik performa model yang diajukan.
 
 ---
 

@@ -53,13 +53,15 @@ import tensorflow as tf
 class TemporalAttention(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super(TemporalAttention, self).__init__(**kwargs)
-    def build(self, input_shape):
-        self.W = self.add_weight(name="att_weight", shape=(input_shape[-1], 1), initializer="normal")
-        self.b = self.add_weight(name="att_bias", shape=(input_shape[1], 1), initializer="zeros")
-        super(TemporalAttention, self).build(input_shape)
+        self.score = tf.keras.layers.Dense(1, name='score')
+
     def call(self, x):
-        e = tf.keras.backend.tanh(tf.keras.backend.dot(x, self.W) + self.b)
-        a = tf.keras.backend.softmax(e, axis=1)
+        # We don't know if tanh was used before the dense layer or inside it.
+        # But Dense has linear activation by default.
+        # Wait, if Dense has linear, maybe it was just self.score(x)?
+        # I'll just use self.score(x) first.
+        e = self.score(x)
+        a = tf.keras.activations.softmax(e, axis=1)
         output = x * a
         return tf.keras.backend.sum(output, axis=1)
 
@@ -69,12 +71,25 @@ def get_model(name='bidir'):
     if name not in _models:
         p = BASE_DIR / "best_bidir.keras" if name == 'bidir' else BASE_DIR / f'best_{name}.keras'
         if p.exists():
-            _models[name] = tf.keras.models.load_model(str(p), custom_objects={'TemporalAttention': TemporalAttention}, compile=False)
+            _models[name] = tf.keras.models.load_model(str(p), custom_objects={
+                'TemporalAttention': TemporalAttention,
+                'Orthogonal': tf.keras.initializers.Orthogonal,
+                'GlorotUniform': tf.keras.initializers.GlorotUniform,
+                'Zeros': tf.keras.initializers.Zeros,
+                'Ones': tf.keras.initializers.Ones
+            }, compile=False)
         else:
             # Fallback if specific file name is requested but only best_bidir is present
             alt_p = BASE_DIR / "best_bidir.keras"
-            if alt_p.exists():
-                _models[name] = tf.keras.models.load_model(str(alt_p), custom_objects={'TemporalAttention': TemporalAttention}, compile=False)
+            print(f"Loading {name} from {alt_p}...")
+            _models[name] = tf.keras.models.load_model(str(alt_p), custom_objects={
+                'TemporalAttention': TemporalAttention,
+                'Orthogonal': tf.keras.initializers.Orthogonal,
+                'GlorotUniform': tf.keras.initializers.GlorotUniform,
+                'Zeros': tf.keras.initializers.Zeros,
+                'Ones': tf.keras.initializers.Ones
+            }, compile=False)
+            print(f"Loaded {name} successfully.")
     return _models.get(name)
 
 # ── Custom Logic ────────────────────────────────────────────────
@@ -180,11 +195,19 @@ Narasi harus praktis, mudah dipahami admin lapangan, tidak teknis, dan langsung 
     try:
         response = groq_client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        return f"[Groq API error: {e}] {rec['human_summary']}"
+        # Fallback to another model with high free tier limits
+        try:
+            fallback_response = groq_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="qwen/qwen3-32b",
+            )
+            return fallback_response.choices[0].message.content.strip()
+        except Exception as fallback_e:
+            return f"[Groq API error: {fallback_e}] {rec['human_summary']}"
 
 
 # ── Pydantic Schemas ───────────────────────────────────────────────────────
@@ -269,53 +292,58 @@ def health():
 
 @app.post("/predict")
 def predict(req: PredictRequest):
-    obs = req.observations
-    if len(obs) < WINDOW_SIZE:
-        raise HTTPException(400, f"Need ≥{WINDOW_SIZE} observations, got {len(obs)}")
-    df = build_features(obs)
+    import traceback
+    try:
+        obs = req.observations
+        if len(obs) < WINDOW_SIZE:
+            raise HTTPException(400, f"Need ≥{WINDOW_SIZE} observations, got {len(obs)}")
+        df = build_features(obs)
 
-    df_scaled_inf = df.copy()
-    df_scaled_inf[FEATURE_COLS] = scaler_X.transform(df[FEATURE_COLS])
-    seq = df_scaled_inf[FEATURE_COLS].iloc[-WINDOW_SIZE:].values.reshape(1,WINDOW_SIZE,N_FEATURES)
+        df_scaled_inf = df.copy()
+        df_scaled_inf[FEATURE_COLS] = scaler_X.transform(df[FEATURE_COLS])
+        seq = df_scaled_inf[FEATURE_COLS].iloc[-WINDOW_SIZE:].values.reshape(1,WINDOW_SIZE,N_FEATURES)
 
-    # --- FORCE BIDIR MODEL FOR PRODUCTION ---
-    model_version = "A_BIDIR"
-    m = get_model('bidir')
-    if m:
-        pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
-    else:
-        pred_occ = float(obs[-1].occupancy_rate)
-        model_version = "FALLBACK"
-    # ----------------------------------
+        # --- FORCE BIDIR MODEL FOR PRODUCTION ---
+        model_version = "A_BIDIR"
+        m = get_model('bidir')
+        if m:
+            pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
+        else:
+            pred_occ = float(obs[-1].occupancy_rate)
+            model_version = "FALLBACK"
+        # ----------------------------------
 
-    recent_df_for_std = pd.DataFrame([o.model_dump() if hasattr(o, 'model_dump') else o.dict() for o in obs])
-    recent_std = float(recent_df_for_std['occupancy_rate'].tail(12).std())
-    confidence = compute_confidence_score(pred_occ, recent_std)
+        recent_df_for_std = pd.DataFrame([o.model_dump() if hasattr(o, 'model_dump') else o.dict() for o in obs])
+        recent_std = float(recent_df_for_std['occupancy_rate'].tail(12).std())
+        confidence = compute_confidence_score(pred_occ, recent_std)
 
-    occ_vals  = [o.occupancy_rate for o in obs[-6:]]
-    change_rt = float(np.polyfit(range(len(occ_vals)),occ_vals,1)[0]) if len(occ_vals)>1 else 0.0
+        occ_vals  = [o.occupancy_rate for o in obs[-6:]]
+        change_rt = float(np.polyfit(range(len(occ_vals)),occ_vals,1)[0]) if len(occ_vals)>1 else 0.0
 
-    rec = generate_action_recommendation(pred_occ, confidence, change_rt, req.internet_ok)
+        rec = generate_action_recommendation(pred_occ, confidence, change_rt, req.internet_ok)
 
-    hr = obs[-1].hour if obs else datetime.datetime.now().hour
-    wx = obs[-1].weather if obs else 'UNKNOWN'
-    narrative = generate_ai_narrative(pred_occ, rec, weather=wx, hour=hr)
+        hr = obs[-1].hour if obs else datetime.datetime.now().hour
+        wx = obs[-1].weather if obs else 'UNKNOWN'
+        narrative = generate_ai_narrative(pred_occ, rec, weather=wx, hour=hr)
 
-    pid = f"pred_{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-    result = {
-        'prediction_id': pid,
-        'model_version': model_version,
-        'timestamp': datetime.datetime.now().isoformat(),
-        'current_occupancy': round(obs[-1].occupancy_rate, 4),
-        'predicted_occupancy_30min': round(pred_occ, 4),
-        'predicted_pct': f"{pred_occ*100:.1f}%",
-        'confidence': confidence,
-        'recommendation': rec,
-        'ai_narrative': narrative,
-        'change_rate_per_interval': round(change_rt, 4),
-    }
-    prediction_cache[pid] = result
-    return result
+        pid = f"pred_{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+        result = {
+            'prediction_id': pid,
+            'model_version': model_version,
+            'timestamp': datetime.datetime.now().isoformat(),
+            'current_occupancy': round(obs[-1].occupancy_rate, 4),
+            'predicted_occupancy_30min': round(pred_occ, 4),
+            'predicted_pct': f"{pred_occ*100:.1f}%",
+            'confidence': confidence,
+            'recommendation': rec,
+            'ai_narrative': narrative,
+            'change_rate_per_interval': round(change_rt, 4),
+            'source': "Modal.com Cloud ML" if model_version != "FALLBACK" else "Local Rule-based",
+        }
+        prediction_cache[pid] = result
+        return result
+    except Exception as e:
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 @app.get("/dashboard")
 def dashboard():

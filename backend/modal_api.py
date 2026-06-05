@@ -7,8 +7,9 @@ app = modal.App("smartpark-api")
 # Define the container image with CPU support and necessary python packages.
 # We mount all required scaler and model artifacts into the container's /root directory.
 api_image = (
-    modal.Image.from_registry("tensorflow/tensorflow:2.16.1")
+    modal.Image.debian_slim(python_version="3.11")
     .pip_install(
+        "tensorflow==2.17.0",
         "fastapi",
         "uvicorn",
         "numpy<2.0.0",
