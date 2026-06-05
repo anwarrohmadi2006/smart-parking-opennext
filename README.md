@@ -77,6 +77,7 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 - **Slide Presentasi:** [https://canva.link/zqap36unfugeg7h](https://canva.link/zqap36unfugeg7h)
 - **Penggunaan Produk:** [Buku Panduan] CC26-PRU436
 - **Dokumentasi Riset Pemodelan (Google Colab):** [Akses Lingkungan Eksperimen](https://colab.research.google.com/drive/1V2brg3_K2bH1EtTdeJO3vQALBESH9d2G?usp=sharing)
+- **Laporan Teknis Komprehensif:** [SmartPark_Technical_Report.md](./SmartPark_Technical_Report.md)
 
 ---
 
@@ -101,6 +102,7 @@ smart-parking-opennext/
 ├── database.rules.json 	# Firebase Realtime Database rules
 ├── firestore.rules     	# Firestore security rules
 ├── notebook.ipynb      	# Berkas eksperimen utama (Jupyter Notebook) yang memuat rekam jejak riset pemodelan AI
+├── SmartPark_Technical_Report.md # Laporan teknis komprehensif proyek
 ├── open-next.config.ts 	# Konfigurasi OpenNext (Cloudflare deployment)
 ├── wrangler.toml       	# Konfigurasi Cloudflare Workers
 └── README.md           	# Dokumentasi proyek 
