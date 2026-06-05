@@ -15,7 +15,7 @@ api_image = (
         "protobuf<4.24",
         "pandas",
         "scikit-learn",
-        "google-generativeai"
+        "groq"
     )
     .add_local_file(
         local_path="C:/Users/user/Downloads/next js on opennext github action/research/experiments_final/SmartPark_Capstone_Final_Package (1)/smartpark_outputs/BiDir_Original.keras",
@@ -41,7 +41,7 @@ api_image = (
 
 @app.function(
     image=api_image,
-    secrets=[modal.Secret.from_name("gemini-secret")]
+    secrets=[modal.Secret.from_dict({"GROQ_API_KEY": "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"})]
 )
 @modal.asgi_app()
 def web_app():

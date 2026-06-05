@@ -441,7 +441,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab('petugas')}
             className={`p-3 font-medium cursor-pointer rounded-r-lg transition-colors ${activeTab === 'petugas' ? 'bg-blue-600/20 border-l-4 border-blue-500 text-blue-400' : 'text-wise-mute hover:text-wise-canvas hover:bg-[#20221e]/50'}`}
           >
-            Ngatur Petugas
+            Pengatur Petugas
           </div>
         </nav>
 
@@ -1058,7 +1058,7 @@ export default function DashboardPage() {
 
                         {/* AI Narrative Bubble (Gemini) */}
                         <div className="bg-wise-ink/40 p-4 rounded-[16px] border border-wise-ink/60 text-xs text-wise-canvas-soft leading-relaxed italic relative">
-                          <span className="absolute -top-2.5 left-4 bg-slate-950 px-2 text-[9px] font-bold text-blue-400 uppercase tracking-wider">Gemini AI Insight</span>
+                          <span className="absolute -top-2.5 left-4 bg-slate-950 px-2 text-[9px] font-bold text-blue-400 uppercase tracking-wider">AI Insight</span>
                           "{aiPrediction.ai_narrative}"
                         </div>
 
@@ -1284,7 +1284,7 @@ export default function DashboardPage() {
           {activeTab === 'petugas' && (
             <div className="grid gap-6">
               <div className="bg-wise-canvas p-6 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-wise-canvas-soft">
-                <h2 className="text-xl font-bold text-wise-ink mb-2">Ngatur Petugas</h2>
+                <h2 className="text-xl font-bold text-wise-ink mb-2">Pengatur Petugas</h2>
                 <p className="text-sm text-wise-mute mb-6">Kelola status shift petugas parkir saat ini.</p>
                 
                 <div className="grid gap-4">
