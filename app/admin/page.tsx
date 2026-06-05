@@ -443,6 +443,14 @@ export default function DashboardPage() {
           >
             Pengatur Petugas
           </div>
+          <a 
+            href="https://smartpark-ai-dashboard.streamlit.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block p-3 font-medium cursor-pointer rounded-r-lg transition-colors text-wise-mute hover:text-wise-canvas hover:bg-[#20221e]/50"
+          >
+            AI Analytics Dashboard
+          </a>
         </nav>
 
         <div className="bg-[#20221e]/50 rounded-[16px] p-5 mb-6 border border-slate-700/50">
