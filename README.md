@@ -69,13 +69,13 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 
 ## 🔗 Tautan Penting
 
-- **Dataset Utama:** [CNRPark+EXT Dataset](https://github.com/fabiocarrara/deep-parking/releases/download/archive/CNRPark+EXT.csv) *(Dataset publik representatif variasi cahaya, bayangan, & partial occlusion)*
-- **Live App (Dashboard Admin - Next.js):** Sistem Manajemen Parkir
+- **Dataset Utama:** [CNRPark+EXT Dataset](https://github.com/fabiocarrara/deep-parking/releases/download/archive/CNRPark+EXT.csv)
+- **Live App (Dashboard Admin - Next.js):** [Sistem Manajemen Parkir](https://smart-parking-opennext.anwarrohmadi111.workers.dev/) *(Password login admin: `cc26`)*
 - **Dashboard Streamlit (Data Analytics):** [https://smartpark-ai-dashboard.streamlit.app/](https://smartpark-ai-dashboard.streamlit.app/)
 - **AI Inference API (Modal.com):** [https://anwarrohmadi111--smartpark-api-web-app.modal.run](https://anwarrohmadi111--smartpark-api-web-app.modal.run)
 - **Video Presentasi (Pitching):** [https://youtu.be/thWRA60pTcA](https://youtu.be/thWRA60pTcA)
 - **Slide Presentasi:** [https://canva.link/zqap36unfugeg7h](https://canva.link/zqap36unfugeg7h)
-- **Penggunaan Produk:** [Buku Panduan] CC26-PRU436
+- **Penggunaan Produk:** [Buku Panduan CC26-PRU436](https://docs.google.com/document/d/1sxVlpqytsBtSkJ3goKhW6ftn6UJK_2WO2FgJkKQUASc/edit?usp=sharing)
 - **Dokumentasi Riset Pemodelan (Google Colab):** [Akses Lingkungan Eksperimen](https://colab.research.google.com/drive/1V2brg3_K2bH1EtTdeJO3vQALBESH9d2G?usp=sharing)
 - **Laporan Teknis Komprehensif:** [SmartPark_Technical_Report.md](./SmartPark_Technical_Report.md)
 - **Aset Model AI (Google Drive):** [Unduh Model BiDir LSTM](https://drive.google.com/drive/folders/1jz4Wm4rBRS36HVIJ0tD_3kx1_VJT7IfX?usp=sharing)
