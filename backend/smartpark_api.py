@@ -180,7 +180,7 @@ Narasi harus praktis, mudah dipahami admin lapangan, tidak teknis, dan langsung 
     try:
         response = groq_client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -278,22 +278,17 @@ def predict(req: PredictRequest):
     df_scaled_inf[FEATURE_COLS] = scaler_X.transform(df[FEATURE_COLS])
     seq = df_scaled_inf[FEATURE_COLS].iloc[-WINDOW_SIZE:].values.reshape(1,WINDOW_SIZE,N_FEATURES)
 
-    # --- ONLINE A/B TESTING ROUTING ---
-    if random.random() < 0.5:
-        model_version = "A_BIDIR"
-        m = get_model('bidir')
-        if m:
-            pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
-        else:
-            pred_occ = float(obs[-1].occupancy_rate)
-            model_version = "FALLBACK"
+    # --- FORCE BIDIR MODEL FOR PRODUCTION ---
+    model_version = "A_BIDIR"
+    m = get_model('bidir')
+    if m:
+        pred_occ = float(np.clip(scaler_y.inverse_transform(m.predict(seq, verbose=0)).flatten()[0], 0, 1))
     else:
-        model_version = "B_BASELINE"
-        # Naive Baseline: Predict using the last observed value
         pred_occ = float(obs[-1].occupancy_rate)
+        model_version = "FALLBACK"
     # ----------------------------------
 
-    recent_df_for_std = pd.DataFrame([o.dict() for o in obs])
+    recent_df_for_std = pd.DataFrame([o.model_dump() if hasattr(o, 'model_dump') else o.dict() for o in obs])
     recent_std = float(recent_df_for_std['occupancy_rate'].tail(12).std())
     confidence = compute_confidence_score(pred_occ, recent_std)
 
