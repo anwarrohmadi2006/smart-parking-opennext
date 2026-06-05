@@ -42,7 +42,7 @@ api_image = (
 
 @app.function(
     image=api_image,
-    secrets=[modal.Secret.from_dict({"GROQ_API_KEY": "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"})]
+    secrets=[modal.Secret.from_name("groq-secret")]
 )
 @modal.asgi_app()
 def web_app():
