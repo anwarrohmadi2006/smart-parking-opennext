@@ -1,13 +1,17 @@
 # SmartPark AI: Sistem Manajemen Parkir Cerdas Berbasis IoT dan Prediksi Okupansi
 
 ![SmartPark AI](https://img.shields.io/badge/Project-Coding_Camp_2026-blue.svg)
-![Status](https://img.shields.io/badge/Status-100%25_Selesai-success.svg)
+![Status](https://img.shields.io/badge/Status-70%25_Selesai-yellow.svg)
 
 > Proyek ini dikembangkan untuk memenuhi kualifikasi **Capstone Project - Coding Camp 2026 powered by DBS Foundation**.
 
 ## 📋 Informasi Tim (CC26-PRU436)
 
 **Tema yang Dipilih:** Inclusive & Resilient Communities
+
+**Nama Advisor Capstone:**
+- Adinda Puji Rahmawaty (14 Mei 2026)
+- Arfara Yema Samgusdian (21 Mei 2026)
 
 **Anggota Tim:**
 1. `CDCC889D6Y0610` - Anwar Rohmadi (Data Science) - [Aktif]
@@ -49,6 +53,8 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 
 ## ✅ Tech Stack & Checklist Pencapaian
 
+*Status Penyelesaian Proyek: 70% Selesai berdasarkan Rencana Proyek.*
+
 ### Main Quest
 - [x] **Front End & Back End:** Implementasi UI/UX, Next.js API Routes, RESTful API (simpan ke database), Integrasi AI/ML.
 - [x] **Artificial Intelligence:** Deep Learning Model (TensorFlow Functional API/Subclassing), Custom Layer/Loss/Callback, Export ke format `.keras`/SavedModel, Skrip Inference mandiri.
@@ -63,12 +69,13 @@ Proyek ini dipilih karena memberikan dampak nyata bagi layanan publik dan memfas
 
 ## 🔗 Tautan Penting
 
-- **Dataset Utama:** [CNRPark+EXT Dataset](#) *(Dataset publik representatif variasi cahaya, bayangan, & partial occlusion)*
-- **Live App (Dashboard Admin - Next.js):** [Deployment URL](#)
-- **Dashboard Streamlit (Data Analytics):** [Streamlit Cloud URL](#)
-- **AI Inference API (Modal.com):** [Modal.com Endpoint URL](#)
-- **Video Presentasi (Pitching):** [YouTube Link](#)
-- **Slide Presentasi:** [Google Slides/PPT Link](#)
+- **Dataset Utama:** [CNRPark+EXT Dataset](https://github.com/fabiocarrara/deep-parking/releases/download/archive/CNRPark+EXT.csv) *(Dataset publik representatif variasi cahaya, bayangan, & partial occlusion)*
+- **Live App (Dashboard Admin - Next.js):** Sistem Manajemen Parkir
+- **Dashboard Streamlit (Data Analytics):** Dashboard Analitik SmartPark AI · Streamlit
+- **AI Inference API (Modal.com):** [https://anwarrohmadi111--smartpark-api-web-app.modal.run](https://anwarrohmadi111--smartpark-api-web-app.modal.run)
+- **Video Presentasi (Pitching):** [https://youtu.be/thWRA60pTcA](https://youtu.be/thWRA60pTcA)
+- **Slide Presentasi:** [https://canva.link/zqap36unfugeg7h](https://canva.link/zqap36unfugeg7h)
+- **Penggunaan Produk:** [Buku Panduan] CC26-PRU436
 
 ---
 
